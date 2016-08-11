@@ -1,0 +1,2468 @@
+    <html><head>
+	<TITLE>RGL model</TITLE>
+    </head>
+    <body onload="rgl.start();"> 
+    
+    <div align="center">
+<script>CanvasMatrix4=function(m){if(typeof m=='object'){if("length"in m&&m.length>=16){this.load(m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],m[8],m[9],m[10],m[11],m[12],m[13],m[14],m[15]);return}else if(m instanceof CanvasMatrix4){this.load(m);return}}this.makeIdentity()};CanvasMatrix4.prototype.load=function(){if(arguments.length==1&&typeof arguments[0]=='object'){var matrix=arguments[0];if("length"in matrix&&matrix.length==16){this.m11=matrix[0];this.m12=matrix[1];this.m13=matrix[2];this.m14=matrix[3];this.m21=matrix[4];this.m22=matrix[5];this.m23=matrix[6];this.m24=matrix[7];this.m31=matrix[8];this.m32=matrix[9];this.m33=matrix[10];this.m34=matrix[11];this.m41=matrix[12];this.m42=matrix[13];this.m43=matrix[14];this.m44=matrix[15];return}if(arguments[0]instanceof CanvasMatrix4){this.m11=matrix.m11;this.m12=matrix.m12;this.m13=matrix.m13;this.m14=matrix.m14;this.m21=matrix.m21;this.m22=matrix.m22;this.m23=matrix.m23;this.m24=matrix.m24;this.m31=matrix.m31;this.m32=matrix.m32;this.m33=matrix.m33;this.m34=matrix.m34;this.m41=matrix.m41;this.m42=matrix.m42;this.m43=matrix.m43;this.m44=matrix.m44;return}}this.makeIdentity()};CanvasMatrix4.prototype.getAsArray=function(){return[this.m11,this.m12,this.m13,this.m14,this.m21,this.m22,this.m23,this.m24,this.m31,this.m32,this.m33,this.m34,this.m41,this.m42,this.m43,this.m44]};CanvasMatrix4.prototype.getAsWebGLFloatArray=function(){return new WebGLFloatArray(this.getAsArray())};CanvasMatrix4.prototype.makeIdentity=function(){this.m11=1;this.m12=0;this.m13=0;this.m14=0;this.m21=0;this.m22=1;this.m23=0;this.m24=0;this.m31=0;this.m32=0;this.m33=1;this.m34=0;this.m41=0;this.m42=0;this.m43=0;this.m44=1};CanvasMatrix4.prototype.transpose=function(){var tmp=this.m12;this.m12=this.m21;this.m21=tmp;tmp=this.m13;this.m13=this.m31;this.m31=tmp;tmp=this.m14;this.m14=this.m41;this.m41=tmp;tmp=this.m23;this.m23=this.m32;this.m32=tmp;tmp=this.m24;this.m24=this.m42;this.m42=tmp;tmp=this.m34;this.m34=this.m43;this.m43=tmp};CanvasMatrix4.prototype.invert=function(){var det=this._determinant4x4();if(Math.abs(det)<1e-8)return null;this._makeAdjoint();this.m11/=det;this.m12/=det;this.m13/=det;this.m14/=det;this.m21/=det;this.m22/=det;this.m23/=det;this.m24/=det;this.m31/=det;this.m32/=det;this.m33/=det;this.m34/=det;this.m41/=det;this.m42/=det;this.m43/=det;this.m44/=det};CanvasMatrix4.prototype.translate=function(x,y,z){if(x==undefined)x=0;if(y==undefined)y=0;if(z==undefined)z=0;var matrix=new CanvasMatrix4();matrix.m41=x;matrix.m42=y;matrix.m43=z;this.multRight(matrix)};CanvasMatrix4.prototype.scale=function(x,y,z){if(x==undefined)x=1;if(z==undefined){if(y==undefined){y=x;z=x}else z=1}else if(y==undefined)y=x;var matrix=new CanvasMatrix4();matrix.m11=x;matrix.m22=y;matrix.m33=z;this.multRight(matrix)};CanvasMatrix4.prototype.rotate=function(angle,x,y,z){angle=angle/180*Math.PI;angle/=2;var sinA=Math.sin(angle);var cosA=Math.cos(angle);var sinA2=sinA*sinA;var length=Math.sqrt(x*x+y*y+z*z);if(length==0){x=0;y=0;z=1}else if(length!=1){x/=length;y/=length;z/=length}var mat=new CanvasMatrix4();if(x==1&&y==0&&z==0){mat.m11=1;mat.m12=0;mat.m13=0;mat.m21=0;mat.m22=1-2*sinA2;mat.m23=2*sinA*cosA;mat.m31=0;mat.m32=-2*sinA*cosA;mat.m33=1-2*sinA2;mat.m14=mat.m24=mat.m34=0;mat.m41=mat.m42=mat.m43=0;mat.m44=1}else if(x==0&&y==1&&z==0){mat.m11=1-2*sinA2;mat.m12=0;mat.m13=-2*sinA*cosA;mat.m21=0;mat.m22=1;mat.m23=0;mat.m31=2*sinA*cosA;mat.m32=0;mat.m33=1-2*sinA2;mat.m14=mat.m24=mat.m34=0;mat.m41=mat.m42=mat.m43=0;mat.m44=1}else if(x==0&&y==0&&z==1){mat.m11=1-2*sinA2;mat.m12=2*sinA*cosA;mat.m13=0;mat.m21=-2*sinA*cosA;mat.m22=1-2*sinA2;mat.m23=0;mat.m31=0;mat.m32=0;mat.m33=1;mat.m14=mat.m24=mat.m34=0;mat.m41=mat.m42=mat.m43=0;mat.m44=1}else{var x2=x*x;var y2=y*y;var z2=z*z;mat.m11=1-2*(y2+z2)*sinA2;mat.m12=2*(x*y*sinA2+z*sinA*cosA);mat.m13=2*(x*z*sinA2-y*sinA*cosA);mat.m21=2*(y*x*sinA2-z*sinA*cosA);mat.m22=1-2*(z2+x2)*sinA2;mat.m23=2*(y*z*sinA2+x*sinA*cosA);mat.m31=2*(z*x*sinA2+y*sinA*cosA);mat.m32=2*(z*y*sinA2-x*sinA*cosA);mat.m33=1-2*(x2+y2)*sinA2;mat.m14=mat.m24=mat.m34=0;mat.m41=mat.m42=mat.m43=0;mat.m44=1}this.multRight(mat)};CanvasMatrix4.prototype.multRight=function(mat){var m11=(this.m11*mat.m11+this.m12*mat.m21+this.m13*mat.m31+this.m14*mat.m41);var m12=(this.m11*mat.m12+this.m12*mat.m22+this.m13*mat.m32+this.m14*mat.m42);var m13=(this.m11*mat.m13+this.m12*mat.m23+this.m13*mat.m33+this.m14*mat.m43);var m14=(this.m11*mat.m14+this.m12*mat.m24+this.m13*mat.m34+this.m14*mat.m44);var m21=(this.m21*mat.m11+this.m22*mat.m21+this.m23*mat.m31+this.m24*mat.m41);var m22=(this.m21*mat.m12+this.m22*mat.m22+this.m23*mat.m32+this.m24*mat.m42);var m23=(this.m21*mat.m13+this.m22*mat.m23+this.m23*mat.m33+this.m24*mat.m43);var m24=(this.m21*mat.m14+this.m22*mat.m24+this.m23*mat.m34+this.m24*mat.m44);var m31=(this.m31*mat.m11+this.m32*mat.m21+this.m33*mat.m31+this.m34*mat.m41);var m32=(this.m31*mat.m12+this.m32*mat.m22+this.m33*mat.m32+this.m34*mat.m42);var m33=(this.m31*mat.m13+this.m32*mat.m23+this.m33*mat.m33+this.m34*mat.m43);var m34=(this.m31*mat.m14+this.m32*mat.m24+this.m33*mat.m34+this.m34*mat.m44);var m41=(this.m41*mat.m11+this.m42*mat.m21+this.m43*mat.m31+this.m44*mat.m41);var m42=(this.m41*mat.m12+this.m42*mat.m22+this.m43*mat.m32+this.m44*mat.m42);var m43=(this.m41*mat.m13+this.m42*mat.m23+this.m43*mat.m33+this.m44*mat.m43);var m44=(this.m41*mat.m14+this.m42*mat.m24+this.m43*mat.m34+this.m44*mat.m44);this.m11=m11;this.m12=m12;this.m13=m13;this.m14=m14;this.m21=m21;this.m22=m22;this.m23=m23;this.m24=m24;this.m31=m31;this.m32=m32;this.m33=m33;this.m34=m34;this.m41=m41;this.m42=m42;this.m43=m43;this.m44=m44};CanvasMatrix4.prototype.multLeft=function(mat){var m11=(mat.m11*this.m11+mat.m12*this.m21+mat.m13*this.m31+mat.m14*this.m41);var m12=(mat.m11*this.m12+mat.m12*this.m22+mat.m13*this.m32+mat.m14*this.m42);var m13=(mat.m11*this.m13+mat.m12*this.m23+mat.m13*this.m33+mat.m14*this.m43);var m14=(mat.m11*this.m14+mat.m12*this.m24+mat.m13*this.m34+mat.m14*this.m44);var m21=(mat.m21*this.m11+mat.m22*this.m21+mat.m23*this.m31+mat.m24*this.m41);var m22=(mat.m21*this.m12+mat.m22*this.m22+mat.m23*this.m32+mat.m24*this.m42);var m23=(mat.m21*this.m13+mat.m22*this.m23+mat.m23*this.m33+mat.m24*this.m43);var m24=(mat.m21*this.m14+mat.m22*this.m24+mat.m23*this.m34+mat.m24*this.m44);var m31=(mat.m31*this.m11+mat.m32*this.m21+mat.m33*this.m31+mat.m34*this.m41);var m32=(mat.m31*this.m12+mat.m32*this.m22+mat.m33*this.m32+mat.m34*this.m42);var m33=(mat.m31*this.m13+mat.m32*this.m23+mat.m33*this.m33+mat.m34*this.m43);var m34=(mat.m31*this.m14+mat.m32*this.m24+mat.m33*this.m34+mat.m34*this.m44);var m41=(mat.m41*this.m11+mat.m42*this.m21+mat.m43*this.m31+mat.m44*this.m41);var m42=(mat.m41*this.m12+mat.m42*this.m22+mat.m43*this.m32+mat.m44*this.m42);var m43=(mat.m41*this.m13+mat.m42*this.m23+mat.m43*this.m33+mat.m44*this.m43);var m44=(mat.m41*this.m14+mat.m42*this.m24+mat.m43*this.m34+mat.m44*this.m44);this.m11=m11;this.m12=m12;this.m13=m13;this.m14=m14;this.m21=m21;this.m22=m22;this.m23=m23;this.m24=m24;this.m31=m31;this.m32=m32;this.m33=m33;this.m34=m34;this.m41=m41;this.m42=m42;this.m43=m43;this.m44=m44};CanvasMatrix4.prototype.ortho=function(left,right,bottom,top,near,far){var tx=(left+right)/(left-right);var ty=(top+bottom)/(top-bottom);var tz=(far+near)/(far-near);var matrix=new CanvasMatrix4();matrix.m11=2/(left-right);matrix.m12=0;matrix.m13=0;matrix.m14=0;matrix.m21=0;matrix.m22=2/(top-bottom);matrix.m23=0;matrix.m24=0;matrix.m31=0;matrix.m32=0;matrix.m33=-2/(far-near);matrix.m34=0;matrix.m41=tx;matrix.m42=ty;matrix.m43=tz;matrix.m44=1;this.multRight(matrix)};CanvasMatrix4.prototype.frustum=function(left,right,bottom,top,near,far){var matrix=new CanvasMatrix4();var A=(right+left)/(right-left);var B=(top+bottom)/(top-bottom);var C=-(far+near)/(far-near);var D=-(2*far*near)/(far-near);matrix.m11=(2*near)/(right-left);matrix.m12=0;matrix.m13=0;matrix.m14=0;matrix.m21=0;matrix.m22=2*near/(top-bottom);matrix.m23=0;matrix.m24=0;matrix.m31=A;matrix.m32=B;matrix.m33=C;matrix.m34=-1;matrix.m41=0;matrix.m42=0;matrix.m43=D;matrix.m44=0;this.multRight(matrix)};CanvasMatrix4.prototype.perspective=function(fovy,aspect,zNear,zFar){var top=Math.tan(fovy*Math.PI/360)*zNear;var bottom=-top;var left=aspect*bottom;var right=aspect*top;this.frustum(left,right,bottom,top,zNear,zFar)};CanvasMatrix4.prototype.lookat=function(eyex,eyey,eyez,centerx,centery,centerz,upx,upy,upz){var matrix=new CanvasMatrix4();var zx=eyex-centerx;var zy=eyey-centery;var zz=eyez-centerz;var mag=Math.sqrt(zx*zx+zy*zy+zz*zz);if(mag){zx/=mag;zy/=mag;zz/=mag}var yx=upx;var yy=upy;var yz=upz;xx=yy*zz-yz*zy;xy=-yx*zz+yz*zx;xz=yx*zy-yy*zx;yx=zy*xz-zz*xy;yy=-zx*xz+zz*xx;yx=zx*xy-zy*xx;mag=Math.sqrt(xx*xx+xy*xy+xz*xz);if(mag){xx/=mag;xy/=mag;xz/=mag}mag=Math.sqrt(yx*yx+yy*yy+yz*yz);if(mag){yx/=mag;yy/=mag;yz/=mag}matrix.m11=xx;matrix.m12=xy;matrix.m13=xz;matrix.m14=0;matrix.m21=yx;matrix.m22=yy;matrix.m23=yz;matrix.m24=0;matrix.m31=zx;matrix.m32=zy;matrix.m33=zz;matrix.m34=0;matrix.m41=0;matrix.m42=0;matrix.m43=0;matrix.m44=1;matrix.translate(-eyex,-eyey,-eyez);this.multRight(matrix)};CanvasMatrix4.prototype._determinant2x2=function(a,b,c,d){return a*d-b*c};CanvasMatrix4.prototype._determinant3x3=function(a1,a2,a3,b1,b2,b3,c1,c2,c3){return a1*this._determinant2x2(b2,b3,c2,c3)-b1*this._determinant2x2(a2,a3,c2,c3)+c1*this._determinant2x2(a2,a3,b2,b3)};CanvasMatrix4.prototype._determinant4x4=function(){var a1=this.m11;var b1=this.m12;var c1=this.m13;var d1=this.m14;var a2=this.m21;var b2=this.m22;var c2=this.m23;var d2=this.m24;var a3=this.m31;var b3=this.m32;var c3=this.m33;var d3=this.m34;var a4=this.m41;var b4=this.m42;var c4=this.m43;var d4=this.m44;return a1*this._determinant3x3(b2,b3,b4,c2,c3,c4,d2,d3,d4)-b1*this._determinant3x3(a2,a3,a4,c2,c3,c4,d2,d3,d4)+c1*this._determinant3x3(a2,a3,a4,b2,b3,b4,d2,d3,d4)-d1*this._determinant3x3(a2,a3,a4,b2,b3,b4,c2,c3,c4)};CanvasMatrix4.prototype._makeAdjoint=function(){var a1=this.m11;var b1=this.m12;var c1=this.m13;var d1=this.m14;var a2=this.m21;var b2=this.m22;var c2=this.m23;var d2=this.m24;var a3=this.m31;var b3=this.m32;var c3=this.m33;var d3=this.m34;var a4=this.m41;var b4=this.m42;var c4=this.m43;var d4=this.m44;this.m11=this._determinant3x3(b2,b3,b4,c2,c3,c4,d2,d3,d4);this.m21=-this._determinant3x3(a2,a3,a4,c2,c3,c4,d2,d3,d4);this.m31=this._determinant3x3(a2,a3,a4,b2,b3,b4,d2,d3,d4);this.m41=-this._determinant3x3(a2,a3,a4,b2,b3,b4,c2,c3,c4);this.m12=-this._determinant3x3(b1,b3,b4,c1,c3,c4,d1,d3,d4);this.m22=this._determinant3x3(a1,a3,a4,c1,c3,c4,d1,d3,d4);this.m32=-this._determinant3x3(a1,a3,a4,b1,b3,b4,d1,d3,d4);this.m42=this._determinant3x3(a1,a3,a4,b1,b3,b4,c1,c3,c4);this.m13=this._determinant3x3(b1,b2,b4,c1,c2,c4,d1,d2,d4);this.m23=-this._determinant3x3(a1,a2,a4,c1,c2,c4,d1,d2,d4);this.m33=this._determinant3x3(a1,a2,a4,b1,b2,b4,d1,d2,d4);this.m43=-this._determinant3x3(a1,a2,a4,b1,b2,b4,c1,c2,c4);this.m14=-this._determinant3x3(b1,b2,b3,c1,c2,c3,d1,d2,d3);this.m24=this._determinant3x3(a1,a2,a3,c1,c2,c3,d1,d2,d3);this.m34=-this._determinant3x3(a1,a2,a3,b1,b2,b3,d1,d2,d3);this.m44=this._determinant3x3(a1,a2,a3,b1,b2,b3,c1,c2,c3)}</script>
+<script>
+rglwidgetClass = function() {
+    this.canvas = null;
+    this.userMatrix = new CanvasMatrix4();
+    this.types = [];
+    this.prMatrix = new CanvasMatrix4();
+    this.mvMatrix = new CanvasMatrix4();
+    this.vp = null;
+    this.prmvMatrix = null;
+    this.origs = null;
+    this.gl = null;
+    this.scene = null;
+};
+
+(function() {
+    this.multMV = function(M, v) {
+        return [ M.m11 * v[0] + M.m12 * v[1] + M.m13 * v[2] + M.m14 * v[3],
+                 M.m21 * v[0] + M.m22 * v[1] + M.m23 * v[2] + M.m24 * v[3],
+                 M.m31 * v[0] + M.m32 * v[1] + M.m33 * v[2] + M.m34 * v[3],
+                 M.m41 * v[0] + M.m42 * v[1] + M.m43 * v[2] + M.m44 * v[3]
+               ];
+    };
+
+    this.vlen = function(v) {
+		  return Math.sqrt(this.dotprod(v, v));
+		};
+
+    this.dotprod = function(a, b) {
+      return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+    }
+
+		this.xprod = function(a, b) {
+			return [a[1]*b[2] - a[2]*b[1],
+			    a[2]*b[0] - a[0]*b[2],
+			    a[0]*b[1] - a[1]*b[0]];
+		};
+
+    this.cbind = function(a, b) {
+      return a.map(function(currentValue, index, array) {
+            return currentValue.concat(b[index]);
+      });
+    };
+
+    this.swap = function(a, i, j) {
+      var temp = a[i];
+      a[i] = a[j];
+      a[j] = temp;
+    };
+
+    this.flatten = function(a) {
+      return [].concat.apply([], a);
+    };
+
+    /* set element of 1d or 2d array as if it was flattened.  Column major, zero based! */
+    this.setElement = function(a, i, value) {
+      if (Array.isArray(a[0])) {
+        var dim = a.length,
+            col = Math.floor(i/dim),
+            row = i % dim;
+        a[row][col] = value;
+      } else {
+        a[i] = value;
+      }
+    };
+
+    this.transpose = function(a) {
+      var newArray = [],
+          n = a.length,
+          m = a[0].length,
+          i;
+      for(i = 0; i < m; i++){
+        newArray.push([]);
+      }
+
+      for(i = 0; i < n; i++){
+        for(var j = 0; j < m; j++){
+          newArray[j].push(a[i][j]);
+        }
+      }
+      return newArray;
+    };
+
+    this.sumsq = function(x) {
+      var result = 0, i;
+      for (i=0; i < x.length; i++)
+        result += x[i]*x[i];
+      return result;
+    };
+
+    this.toCanvasMatrix4 = function(mat) {
+      if (mat instanceof CanvasMatrix4)
+        return mat;
+      var result = new CanvasMatrix4();
+      mat = this.flatten(this.transpose(mat));
+      result.load(mat);
+      return result;
+    };
+
+    this.stringToRgb = function(s) {
+      s = s.replace("#", "");
+      var bigint = parseInt(s, 16);
+      return [((bigint >> 16) & 255)/255,
+              ((bigint >> 8) & 255)/255,
+               (bigint & 255)/255];
+    };
+
+    this.componentProduct = function(x, y) {
+      if (typeof y === "undefined") {
+        this.alertOnce("Bad arg to componentProduct");
+      }
+      var result = new Float32Array(3), i;
+      for (i = 0; i<3; i++)
+        result[i] = x[i]*y[i];
+      return result;
+    };
+
+    this.getPowerOfTwo = function(value) {
+	    var pow = 1;
+	    while(pow<value) {
+	      pow *= 2;
+	    }
+	    return pow;
+	  };
+
+	  this.unique = function(arr) {
+	    arr = [].concat(arr);
+	    return arr.filter(function(value, index, self) {
+	      return self.indexOf(value) === index;
+	    });
+	  };
+
+	  this.repeatToLen = function(arr, len) {
+	    arr = [].concat(arr);
+	    while (arr.length < len/2)
+	      arr = arr.concat(arr);
+	    return arr.concat(arr.slice(0, len - arr.length));
+	  };
+
+	  this.alertOnce = function(msg) {
+	    if (typeof this.alerted !== "undefined")
+	      return;
+	    this.alerted = true;
+	    alert(msg);
+	  };
+
+    this.f_is_lit = 1;
+    this.f_is_smooth = 2;
+    this.f_has_texture = 4;
+    this.f_is_indexed = 8;
+    this.f_depth_sort = 16;
+    this.f_fixed_quads = 32;
+    this.f_is_transparent = 64;
+    this.f_is_lines = 128;
+    this.f_sprites_3d = 256;
+    this.f_sprite_3d = 512;
+    this.f_is_subscene = 1024;
+    this.f_is_clipplanes = 2048;
+
+    this.whichList = function(id) {
+      var obj = this.getObj(id),
+          flags = obj.flags;
+        if (obj.type === "light")
+          return "lights";
+        if (flags & this.f_is_subscene)
+            return "subscenes";
+        if (flags & this.f_is_clipplanes)
+            return "clipplanes";
+        if (flags & this.f_is_transparent)
+            return "transparent";
+        return "opaque";
+    };
+
+    this.getObj = function(id) {
+      if (typeof id !== "number") {
+		    this.alertOnce("getObj id is "+typeof id);
+      }
+      return this.scene.objects[id];
+    };
+
+    this.getIdsByType = function(type, subscene) {
+      var
+        result = [], i, self = this;
+      if (typeof subscene === "undefined") {
+        Object.keys(this.scene.objects).forEach(
+          function(key) {
+            key = parseInt(key, 10);
+            if (self.getObj(key).type === type)
+              result.push(key);
+          });
+      } else {
+        ids = this.getObj(subscene).objects;
+        for (i=0; i < ids.length; i++) {
+          if (this.getObj(ids[i]).type === type) {
+            result.push(ids[i]);
+          }
+        }
+      }
+      return result;
+	  };
+
+    this.getMaterial = function(id, property) {
+      var obj = this.getObj(id),
+          mat = obj.material[property];
+      if (typeof mat === "undefined")
+          mat = this.scene.material[property];
+      return mat;
+    };
+
+    this.inSubscene = function(id, subscene) {
+      return this.getObj(subscene).objects.indexOf(id) > -1;
+    };
+
+    this.addToSubscene = function(id, subscene) {
+      var thelist,
+          thesub = this.getObj(subscene),
+          ids = [id],
+          obj = this.getObj(id), i;
+      if (typeof obj.newIds !== "undefined") {
+        ids = ids.concat(obj.newIds);
+      }
+      for (i = 0; i < ids.length; i++) {
+        id = ids[i];
+        if (thesub.objects.indexOf(id) == -1) {
+          thelist = this.whichList(id);
+          thesub.objects.push(id);
+          thesub[thelist].push(id);
+        }
+      }
+    };
+
+    this.delFromSubscene = function(id, subscene) {
+      var thelist,
+          thesub = this.getObj(subscene),
+          obj = this.getObj(id),
+          ids = [id], i, newIds;
+      if (typeof obj.newIds !== "undefined")
+        ids = ids.concat(obj.newIds);
+      for (j=0; j<ids.length;j++) {
+        id = ids[j];
+        i = thesub.objects.indexOf(id);
+        if (i > -1) {
+          thesub.objects.splice(i, 1);
+          thelist = this.whichList(id);
+          i = thesub[thelist].indexOf(id);
+          thesub[thelist].splice(i, 1);
+        }
+      }
+    };
+
+    this.setSubsceneEntries = function(ids, subsceneid) {
+      var sub = this.getObj(subsceneid);
+      sub.objects = ids;
+      this.initSubscene(subsceneid);
+    };
+
+    this.getSubsceneEntries = function(subscene) {
+      return this.getObj(subscene).objects;
+    };
+
+    this.getChildSubscenes = function(subscene) {
+      return this.getObj(subscene).subscenes;
+    };
+
+    this.getVertexShader = function(id) {
+	    var obj = this.getObj(id),
+	        flags = obj.flags,
+	        type = obj.type,
+          is_lit = flags & this.f_is_lit,
+		      has_texture = flags & this.f_has_texture,
+		      fixed_quads = flags & this.f_fixed_quads,
+		      sprites_3d = flags & this.f_sprites_3d,
+		      sprite_3d = flags & this.f_sprite_3d,
+		      nclipplanes = this.countClipplanes(),
+		      result;
+
+		  if (type === "clipplanes" || sprites_3d) return;
+
+		  result = "	/* ****** "+type+" object "+id+" vertex shader ****** */\n"+
+			"	attribute vec3 aPos;\n"+
+		  "	attribute vec4 aCol;\n"+
+			" uniform mat4 mvMatrix;\n"+
+			" uniform mat4 prMatrix;\n"+
+			" varying vec4 vCol;\n"+
+			" varying vec4 vPosition;\n";
+
+			if (is_lit && !fixed_quads)
+				result = result + "	attribute vec3 aNorm;\n"+
+			                    " uniform mat4 normMatrix;\n"+
+			                    " varying vec3 vNormal;\n";
+
+			if (has_texture || type === "text")
+				result = result + " attribute vec2 aTexcoord;\n"+
+			                    " varying vec2 vTexcoord;\n";
+
+			if (type === "text")
+				result = result + "	uniform vec2 textScale;\n";
+
+			if (fixed_quads)
+				result = result + "	attribute vec2 aOfs;\n";
+			else if (sprite_3d)
+				result = result + "	uniform vec3 uOrig;\n"+
+			                    " uniform float uSize;\n"+
+			                    " uniform mat4 usermat;\n";
+
+			result = result + "	void main(void) {\n";
+
+			if (nclipplanes || (!fixed_quads && !sprite_3d))
+				result = result + "	  vPosition = mvMatrix * vec4(aPos, 1.);\n";
+
+			if (!fixed_quads && !sprite_3d)
+				result = result + "	  gl_Position = prMatrix * vPosition;\n";
+
+			if (type == "points") {
+			  var size = this.getMaterial(id, "size");
+				result = result + "	  gl_PointSize = "+size.toFixed(1)+";\n";
+			}
+
+			result = result + "	  vCol = aCol;\n";
+
+			if (is_lit && !fixed_quads && !sprite_3d)
+				result = result + "	  vNormal = normalize((normMatrix * vec4(aNorm, 1.)).xyz);\n";
+
+			if (has_texture || type === "text")
+				result = result + "	  vTexcoord = aTexcoord;\n";
+
+			if (type == "text")
+				result = result + "	  vec4 pos = prMatrix * mvMatrix * vec4(aPos, 1.);\n"+
+			                    "   pos = pos/pos.w;\n"+
+			                    "   gl_Position = pos + vec4(aOfs*textScale, 0.,0.);\n";
+
+			if (type == "sprites")
+				result = result + "	  vec4 pos = mvMatrix * vec4(aPos, 1.);\n"+
+			                    "   pos = pos/pos.w + vec4(aOfs, 0., 0.);\n"+
+			                    "   gl_Position = prMatrix*pos;\n";
+
+			if (sprite_3d)
+				result = result + "	  vNormal = normalize((normMatrix * vec4(aNorm, 1.)).xyz);\n"+
+			                    "   vec4 pos = mvMatrix * vec4(uOrig, 1.);\n"+
+			                    "   vPosition = pos/pos.w + vec4(uSize*(vec4(aPos, 1.)*usermat).xyz,0.);\n"+
+			                    "   gl_Position = prMatrix * vPosition;\n";
+
+			result = result + "	}\n";
+			return result;
+    };
+
+    this.getFragmentShader = function(id) {
+	    var obj = this.getObj(id),
+	        flags = obj.flags,
+	        type = obj.type,
+          is_lit = flags & this.f_is_lit,
+		      has_texture = flags & this.f_has_texture,
+		      fixed_quads = flags & this.f_fixed_quads,
+		      sprites_3d = flags & this.f_sprites_3d,
+		      nclipplanes = this.countClipplanes(), i,
+          texture_format, nlights,
+          result;
+
+		  if (type === "clipplanes" || sprites_3d) return;
+
+		  if (has_texture)
+			  texture_format = this.getMaterial(id, "textype");
+
+		  result = "/* ****** "+type+" object "+id+" fragment shader ****** */\n"+
+		  				 "#ifdef GL_ES\n"+
+				       "  precision highp float;\n"+
+				       "#endif\n"+
+				       "  varying vec4 vCol; // carries alpha\n"+
+				       "  varying vec4 vPosition;\n";
+
+			if (has_texture || type === "text")
+				result = result + "	varying vec2 vTexcoord;\n"+
+			                    " uniform sampler2D uSampler;\n";
+
+			if (is_lit && !fixed_quads)
+				result = result + "	varying vec3 vNormal;\n";
+
+			for (i = 0; i < nclipplanes; i++)
+				result = result + "	uniform vec4 vClipplane"+i+";\n";
+
+			if (is_lit) {
+			  nlights = this.countLights();
+			  if (nlights)
+			      result = result + "	uniform mat4 mvMatrix;\n";
+			  else
+			      is_lit = false;
+			}
+
+			if (is_lit) {
+				result = result + "	  uniform vec3 emission;\n"+
+				                  "   uniform float shininess;\n";
+
+				for (i=0; i < nlights; i++) {
+					result = result + "	  uniform vec3 ambient" + i + ";\n"+
+						                "   uniform vec3 specular" + i +"; // light*material\n"+
+						                "   uniform vec3 diffuse" + i + ";\n"+
+						                "   uniform vec3 lightDir" + i + ";\n"+
+						                "   uniform bool viewpoint" + i + ";\n"+
+						                "   uniform bool finite" + i + ";\n";
+				}
+			}
+
+			result = result + "	void main(void) {\n";
+
+			for (i=0; i < nclipplanes;i++)
+			  result = result + "	  if (dot(vPosition, vClipplane"+i+") < 0.0) discard;\n";
+
+			if (is_lit) {
+				result = result + "	  vec3 eye = normalize(-vPosition.xyz);\n"+
+				                  "   vec3 lightdir;\n"+
+				                  "   vec4 colDiff;\n"+
+				                  "   vec3 halfVec;\n"+
+				                  "   vec4 lighteffect = vec4(emission, 0.);\n"+
+				                  "   vec3 col;\n"+
+				                  "   float nDotL;\n";
+				if (fixed_quads) {
+					result = result +   "	  vec3 n = vec3(0., 0., 1.);\n";
+				}
+				else {
+					result = result +   "	  vec3 n = normalize(vNormal);\n"+
+						                  "   n = -faceforward(n, n, eye);\n";
+				}
+        for (i=0; i < nlights; i++) {
+					result = result + "   colDiff = vec4(vCol.rgb * diffuse" + i + ", vCol.a);\n"+
+					                  "   lightdir = lightDir" + i + ";\n"+
+					                  "   if (!viewpoint" + i +")\n"+
+						                "     lightdir = (mvMatrix * vec4(lightdir, 1.)).xyz;\n"+
+						                "   if (!finite" + i + ") {\n"+
+						                "     halfVec = normalize(lightdir + eye);\n"+
+					                  "   } else {\n"+
+						                "     lightdir = normalize(lightdir - vPosition.xyz);\n"+
+									          "     halfVec = normalize(lightdir + eye);\n"+
+					                  "   }\n"+
+					                  "	  col = ambient" + i + ";\n"+
+						                "   nDotL = dot(n, lightdir);\n"+
+						                "   col = col + max(nDotL, 0.) * colDiff.rgb;\n"+
+						                "   col = col + pow(max(dot(halfVec, n), 0.), shininess) * specular" + i + ";\n"+
+						                "   lighteffect = lighteffect + vec4(col, colDiff.a);\n";
+				}
+
+		  } else {
+				result = result +   "   vec4 colDiff = vCol;\n"+
+                            "	  vec4 lighteffect = colDiff;\n";
+			}
+
+			if ((has_texture && texture_format === "rgba") || type === "text")
+				result = result +   "	  vec4 textureColor = lighteffect*texture2D(uSampler, vTexcoord);\n";
+
+			if (has_texture) {
+			  result = result + {
+						rgb:            "   vec4 textureColor = lighteffect*vec4(texture2D(uSampler, vTexcoord).rgb, 1.);\n",
+						alpha:          "   vec4 textureColor = texture2D(uSampler, vTexcoord);\n"+
+                            "   float luminance = dot(vec3(1.,1.,1.), textureColor.rgb)/3.;\n"+
+                            "   textureColor =  vec4(lighteffect.rgb, lighteffect.a*luminance);\n",
+						luminance:      "   vec4 textureColor = vec4(lighteffect.rgb*dot(texture2D(uSampler, vTexcoord).rgb, vec3(1.,1.,1.))/3., lighteffect.a);\n",
+					"luminance.alpha":"	  vec4 textureColor = texture2D(uSampler, vTexcoord);\n"+
+						                "   float luminance = dot(vec3(1.,1.,1.),textureColor.rgb)/3.;\n"+
+						                "   textureColor = vec4(lighteffect.rgb*luminance, lighteffect.a*textureColor.a);\n"
+			    }[texture_format]+
+                            "   gl_FragColor = textureColor;\n";
+			} else if (type === "text") {
+			  result = result +   "	  if (textureColor.a < 0.1)\n"+
+                            "     discard;\n"+
+                            "   else\n"+
+                            "     gl_FragColor = textureColor;\n";
+			} else
+			  result = result +   "   gl_FragColor = lighteffect;\n";
+
+			result = result + "	}\n";
+      return result;
+    };
+
+    this.getShader = function(shaderType, code) {
+        var gl = this.gl, shader;
+        shader = gl.createShader(shaderType);
+        gl.shaderSource(shader, code);
+        gl.compileShader(shader);
+        if (gl.getShaderParameter(shader, gl.COMPILE_STATUS) === 0)
+            alert(gl.getShaderInfoLog(shader));
+        return shader;
+    };
+
+    this.handleLoadedTexture = function(texture, textureCanvas) {
+	    var gl = this.gl;
+	    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+	    gl.bindTexture(gl.TEXTURE_2D, texture);
+	    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureCanvas);
+	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+	    gl.generateMipmap(gl.TEXTURE_2D);
+
+	    gl.bindTexture(gl.TEXTURE_2D, null);
+	  };
+
+	  this.loadImageToTexture = function(uri, texture) {
+	    var canvas = this.textureCanvas,
+	        ctx = canvas.getContext("2d"),
+	        image = new Image(),
+	        self = this;
+
+	     image.onload = function() {
+	       var w = image.width,
+	           h = image.height,
+	           canvasX = self.getPowerOfTwo(w),
+	           canvasY = self.getPowerOfTwo(h),
+	           gl = self.gl,
+	           maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+	       if (maxTexSize > 4096) maxTexSize = 4096;
+	       while (canvasX > 1 && canvasY > 1 && (canvasX > maxTexSize || canvasY > maxTexSize)) {
+	         canvasX /= 2;
+	         canvasY /= 2;
+	       }
+	       canvas.width = canvasX;
+	       canvas.height = canvasY;
+	       ctx.imageSmoothingEnabled = true;
+	       ctx.drawImage(image, 0, 0, canvasX, canvasY);
+	       self.handleLoadedTexture(texture, canvas);
+	       self.drawScene();
+	     };
+	     image.src = uri;
+	   };
+
+    this.drawTextToCanvas = function(text, cex, family, font) {
+	     var canvasX, canvasY,
+	         textY,
+           scaling = 20,
+	         textColour = "white",
+
+	         backgroundColour = "rgba(0,0,0,0)",
+           canvas = this.textureCanvas,
+	         ctx = canvas.getContext("2d"),
+           i, textHeights = [], widths = [], offset = 0, offsets = [],
+	         fontStrings = [],
+           getFontString = function(i) {
+             textHeights[i] = scaling*cex[i];
+             var fontString = textHeights[i] + "px",
+                 family0 = family[i],
+                 font0 = font[i];
+             if (family0 === "sans")
+               family0 = "sans-serif";
+             else if (family0 === "mono")
+               family0 = "monospace";
+             fontString = fontString + " " + family0;
+             if (font0 === 2 || font0 === 4)
+               fontString = "bold " + fontString;
+             if (font0 === 3 || font0 === 4)
+               fontString = "italic " + fontString;
+             return fontString;
+           };
+       cex = this.repeatToLen(cex, text.length);
+       family = this.repeatToLen(family, text.length);
+       font = this.repeatToLen(font, text.length);
+
+	     canvasX = 1;
+	     for (i = 0; i < text.length; i++)  {
+	       ctx.font = fontStrings[i] = getFontString(i);
+	       widths[i] = ctx.measureText(text[i]).width;
+	       offset = offsets[i] = offset + 2*textHeights[i];
+	       canvasX = (widths[i] > canvasX) ? widths[i] : canvasX;
+	     }
+	     canvasX = this.getPowerOfTwo(canvasX);
+	     canvasY = this.getPowerOfTwo(offset);
+
+	     canvas.width = canvasX;
+	     canvas.height = canvasY;
+
+	     ctx.fillStyle = backgroundColour;
+	     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+	     ctx.textBaseline = "alphabetic";
+	     for(i = 0; i < text.length; i++) {
+	       textY = offsets[i];
+	       ctx.font = fontStrings[i];
+	       ctx.fillStyle = textColour;
+	       ctx.textAlign = "left";
+	       ctx.fillText(text[i], 0,  textY);
+	     }
+	     return {canvasX:canvasX, canvasY:canvasY,
+	             widths:widths, textHeights:textHeights,
+	             offsets:offsets};
+	   };
+
+    this.setViewport = function(id) {
+	     var gl = this.gl,
+	       vp = this.getObj(id).par3d.viewport,
+	       x = vp.x*this.canvas.width,
+	       y = vp.y*this.canvas.height,
+	       width = vp.width*this.canvas.width,
+	       height = vp.height*this.canvas.height;
+	     this.vp = {x:x, y:y, width:width, height:height};
+	     gl.viewport(x, y, width, height);
+	     gl.scissor(x, y, width, height);
+	   };
+
+	  this.setprMatrix = function(id) {
+       var subscene = this.getObj(id),
+          embedding = subscene.embeddings.projection;
+       if (embedding === "replace")
+         this.prMatrix.makeIdentity();
+       else
+         this.setprMatrix(subscene.parent);
+       if (embedding === "inherit")
+         return;
+       // This is based on the Frustum::enclose code from geom.cpp
+       var bbox = subscene.par3d.bbox,
+           scale = subscene.par3d.scale,
+           ranges = [(bbox[1]-bbox[0])*scale[0]/2,
+                     (bbox[3]-bbox[2])*scale[1]/2,
+                     (bbox[5]-bbox[4])*scale[2]/2],
+           radius = Math.sqrt(this.sumsq(ranges))*1.1; // A bit bigger to handle labels
+       if (radius <= 0) radius = 1;
+       var observer = subscene.par3d.observer,
+           distance = observer[2],
+	         t = Math.tan(subscene.par3d.FOV*Math.PI/360),
+	         near = distance - radius,
+	         far = distance + radius,
+	         hlen = t*near,
+	         aspect = this.vp.width/this.vp.height,
+	         z = subscene.par3d.zoom;
+	     if (aspect > 1)
+	       this.prMatrix.frustum(-hlen*aspect*z, hlen*aspect*z,
+	                        -hlen*z, hlen*z, near, far);
+	     else
+	       this.prMatrix.frustum(-hlen*z, hlen*z,
+	                        -hlen*z/aspect, hlen*z/aspect,
+	                        near, far);
+	   };
+
+	  this.setmvMatrix = function(id) {
+	     var observer = this.getObj(id).par3d.observer;
+	     this.mvMatrix.makeIdentity();
+	     this.setmodelMatrix(id);
+	     this.mvMatrix.translate(-observer[0], -observer[1], -observer[2]);
+
+	   };
+
+    this.setmodelMatrix = function(id) {
+	    var subscene = this.getObj(id),
+	        embedding = subscene.embeddings.model;
+	    if (embedding !== "inherit") {
+	      var scale = subscene.par3d.scale,
+	          bbox = subscene.par3d.bbox,
+	          center = [(bbox[0]+bbox[1])/2,
+	                    (bbox[2]+bbox[3])/2,
+	                    (bbox[4]+bbox[5])/2];
+	       this.mvMatrix.translate(-center[0], -center[1], -center[2]);
+	       this.mvMatrix.scale(scale[0], scale[1], scale[2]);
+	       this.mvMatrix.multRight( subscene.par3d.userMatrix );
+	     }
+	     if (embedding !== "replace")
+	       this.setmodelMatrix(subscene.parent);
+	   };
+
+	  this.setnormMatrix = function(subsceneid) {
+	     var self = this,
+	     recurse = function(id) {
+	       var sub = self.getObj(id),
+	           embedding = sub.embeddings.model;
+         if (embedding !== "inherit") {
+           var scale = sub.par3d.scale;
+           self.normMatrix.scale(1/scale[0], 1/scale[1], 1/scale[2]);
+           self.normMatrix.multRight(sub.par3d.userMatrix);
+         }
+         if (embedding !== "replace")
+           recurse(sub.parent);
+       };
+       self.normMatrix.makeIdentity();
+       recurse(subsceneid);
+	   };
+
+	  this.setprmvMatrix = function() {
+	     this.prmvMatrix = new CanvasMatrix4( this.mvMatrix );
+	     this.prmvMatrix.multRight( this.prMatrix );
+	   };
+
+    this.countClipplanes = function() {
+      return this.countObjs("clipplanes");
+    };
+
+    this.countLights = function() {
+      return this.countObjs("light");
+    };
+
+    this.countObjs = function(type) {
+      var self = this,
+          bound = 0;
+
+      Object.keys(this.scene.objects).forEach(
+        function(key) {
+          if (self.getObj(parseInt(key, 10)).type === type)
+            bound = bound + 1;
+        });
+      return bound;
+    };
+
+    this.initSubscene = function(id) {
+      var sub = this.getObj(id),
+          i, obj;
+
+      if (sub.type !== "subscene")
+        return;
+
+      sub.par3d.userMatrix = this.toCanvasMatrix4(sub.par3d.userMatrix);
+      sub.par3d.listeners = [].concat(sub.par3d.listeners);
+      sub.backgroundId = undefined;
+      sub.subscenes = [];
+      sub.clipplanes = [];
+      sub.transparent = [];
+      sub.opaque = [];
+      sub.lights = [];
+      for (i=0; i < sub.objects.length; i++) {
+        obj = this.getObj(sub.objects[i]);
+        if (typeof obj === "undefined") {
+          sub.objects.splice(i, 1);
+          i--;
+        } else if (obj.type === "background")
+          sub.backgroundId = obj.id;
+        else
+          sub[this.whichList(obj.id)].push(obj.id);
+      }
+    };
+
+    this.copyObj = function(id, reuse) {
+      var obj = this.getObj(id),
+      	  prev = document.getElementById(reuse).rglinstance,
+      	  prevobj = prev.getObj(id),
+          fields = ["flags", "type",
+                    "colors", "vertices", "centers",
+                    "normals", "offsets",
+                    "texts", "cex", "family", "font", "adj",
+                    "material",
+                    "radii",
+                    "texcoords",
+                    "userMatrix", "ids",
+                    "dim",
+                    "par3d", "userMatrix",
+                    "viewpoint", "finite"],
+          i;
+      for (i = 0; i < fields.length; i++) {
+        if (typeof prevobj[fields[i]] !== "undefined")
+          obj[fields[i]] = prevobj[fields[i]];
+      }
+    };
+
+    this.planeUpdateTriangles = function(id, bbox) {
+      var perms = [[0,0,1], [1,2,2], [2,1,0]],
+          x, xrow, elem, A, d, nhits, i, j, k, u, v, w, intersect, which, v0, v2, vx, reverse,
+          face1 = [], face2 = [], normals = [],
+          obj = this.getObj(id),
+          nPlanes = obj.normals.length;
+      obj.bbox = bbox;
+      obj.vertices = [];
+      obj.initialized = false;
+      for (elem = 0; elem < nPlanes; elem++) {
+//    Vertex Av = normal.getRecycled(elem);
+        x = [];
+        A = obj.normals[elem];
+        d = obj.offsets[elem][0];
+        nhits = 0;
+        for (i=0; i<3; i++)
+          for (j=0; j<2; j++)
+            for (k=0; k<2; k++) {
+              u = perms[0][i];
+              v = perms[1][i];
+              w = perms[2][i];
+              if (A[w] != 0.0) {
+                intersect = -(d + A[u]*bbox[j+2*u] + A[v]*bbox[k+2*v])/A[w];
+  	            if (bbox[2*w] < intersect && intersect < bbox[1+2*w]) {
+  	              xrow = [];
+  	              xrow[u] = bbox[j+2*u];
+  	              xrow[v] = bbox[k+2*v];
+  	              xrow[w] = intersect;
+  	              x.push(xrow);
+  	              face1[nhits] = j + 2*u;
+  	              face2[nhits] = k + 2*v;
+  	              nhits++;
+  	            }
+  	          }
+            }
+
+            if (nhits > 3) {
+            /* Re-order the intersections so the triangles work */
+              for (i=0; i<nhits-2; i++) {
+                which = 0; /* initialize to suppress warning */
+                for (j=i+1; j<nhits; j++) {
+                  if (face1[i] == face1[j] || face1[i] == face2[j]
+                      || face2[i] == face1[j] || face2[i] == face2[j] ) {
+                    which = j;
+                    break;
+                  }
+                }
+                if (which > i+1) {
+                  this.swap(x, i+1, which);
+                  this.swap(face1, i+1, which);
+                  this.swap(face2, i+1, which);
+                }
+              }
+            }
+            if (nhits >= 3) {
+      /* Put in order so that the normal points out the FRONT of the faces */
+              v0 = [x[0][0] - x[1][0] , x[0][1] - x[1][1], x[0][2] - x[1][2]];
+              v2 = [x[2][0] - x[1][0] , x[2][1] - x[1][1], x[2][2] - x[1][2]];
+              /* cross-product */
+              vx = this.xprod(v0, v2);
+              reverse = this.dotprod(vx, A) > 0;
+
+              for (i=0; i<nhits-2; i++) {
+                obj.vertices.push(x[0]);
+                normals.push(A);
+                for (j=1; j<3; j++) {
+                  obj.vertices.push(x[i + (reverse ? 3-j : j)]);
+                  normals.push(A);
+                }
+              }
+            }
+      }
+      obj.pnormals = normals;
+    };
+
+    this.initObj = function(id) {
+	    var obj = this.getObj(id),
+	        flags = obj.flags,
+	        type = obj.type,
+	        is_indexed = flags & this.f_is_indexed,
+          is_lit = flags & this.f_is_lit,
+		      has_texture = flags & this.f_has_texture,
+		      fixed_quads = flags & this.f_fixed_quads,
+		      depth_sort = flags & this.f_depth_sort,
+		      sprites_3d = flags & this.f_sprites_3d,
+		      sprite_3d = flags & this.f_sprite_3d,
+		      gl = this.gl,
+          texinfo, drawtype, nclipplanes, f, frowsize, nrows,
+          i,j,v, mat, uri, matobj;
+
+    if (typeof id !== "number") {
+      this.alertOnce("initObj id is "+typeof id);
+    }
+
+    obj.initialized = true;
+
+    if (type === "background" || type === "bboxdeco" || type === "subscene")
+      return;
+
+    if (type === "light") {
+      obj.ambient = new Float32Array(obj.colors[0].slice(0,3));
+      obj.diffuse = new Float32Array(obj.colors[1].slice(0,3));
+      obj.specular = new Float32Array(obj.colors[2].slice(0,3));
+      obj.lightDir = new Float32Array(obj.vertices[0]);
+      return;
+    }
+
+    if (type === "clipplanes") {
+      obj.vClipplane = this.flatten(this.cbind(obj.normals, obj.offsets));
+      return;
+    }
+
+		if (!sprites_3d) {
+			obj.prog = gl.createProgram();
+			gl.attachShader(obj.prog, this.getShader( gl.VERTEX_SHADER,
+			  this.getVertexShader(id) ));
+			gl.attachShader(obj.prog, this.getShader( gl.FRAGMENT_SHADER,
+			                this.getFragmentShader(id) ));
+			//  Force aPos to location 0, aCol to location 1
+			gl.bindAttribLocation(obj.prog, 0, "aPos");
+			gl.bindAttribLocation(obj.prog, 1, "aCol");
+			gl.linkProgram(obj.prog);
+      var linked = gl.getProgramParameter(obj.prog, gl.LINK_STATUS);
+      if (!linked) {
+
+        // An error occurred while linking
+        var lastError = gl.getProgramInfoLog(program);
+        console.warn("Error in program linking:" + lastError);
+
+        gl.deleteProgram(program);
+      }
+		}
+
+		if (type === "text") {
+      texinfo = this.drawTextToCanvas(obj.texts,
+                                      this.flatten(obj.cex),
+                                      this.flatten(obj.family),
+                                      this.flatten(obj.family));
+		}
+
+		if (fixed_quads && !sprites_3d) {
+		  obj.ofsLoc = gl.getAttribLocation(obj.prog, "aOfs");
+		}
+
+		if (sprite_3d) {
+			obj.origLoc = gl.getUniformLocation(obj.prog, "uOrig");
+			obj.sizeLoc = gl.getUniformLocation(obj.prog, "uSize");
+			obj.usermatLoc = gl.getUniformLocation(obj.prog, "usermat");
+		}
+
+		if (has_texture || type == "text") {
+		  obj.texture = gl.createTexture();
+			obj.texLoc = gl.getAttribLocation(obj.prog, "aTexcoord");
+			obj.sampler = gl.getUniformLocation(obj.prog, "uSampler");
+		}
+
+		if (has_texture) {
+		  mat = obj.material;
+		  if (typeof mat.uri !== "undefined")
+		    uri = mat.uri;
+		  else if (typeof mat.uriElementId === "undefined") {
+		    matobj = this.getObj(mat.uriId);
+		    if (typeof matobj !== "undefined") {
+		      uri = matobj.material.uri;
+		    } else {
+		      uri = "";
+		    }
+		  } else
+		    uri = document.getElementById(mat.uriElementId).rglinstance.getObj(mat.uriId).material.uri;
+
+			this.loadImageToTexture(uri, obj.texture);
+		}
+
+		if (type === "text") {
+		  this.handleLoadedTexture(obj.texture, this.textureCanvas);
+		}
+
+    v = obj.vertices;
+    obj.vertexCount = v.length;
+    if (!obj.vertexCount) return;
+
+    var stride = 3, nc, cofs, nofs, radofs, oofs, tofs, vnew, v1;
+
+    nc = obj.colorCount = obj.colors.length;
+    if (nc > 1) {
+    	cofs = stride;
+    	stride = stride + 4;
+    	v = this.cbind(v, obj.colors);
+    } else {
+    	cofs = -1;
+    	obj.onecolor = this.flatten(obj.colors);
+    }
+
+    if (typeof obj.normals !== "undefined") {
+    	nofs = stride;
+    	stride = stride + 3;
+    	v = this.cbind(v, typeof obj.pnormals !== "undefined" ? obj.pnormals : obj.normals);
+    } else
+    	nofs = -1;
+
+    if (typeof obj.radii !== "undefined") {
+    	radofs = stride;
+    	stride = stride + 1;
+    	if (obj.radii.length === v.length) {
+    	  v = this.cbind(v, obj.radii);
+    	} else if (obj.radii.length === 1) {
+    	  v = v.map(function(row, i, arr) { return row.concat(obj.radii[0]);});
+    	}
+    } else
+    	radofs = -1;
+
+    if (type == "sprites" && !sprites_3d) {
+      tofs = stride;
+      stride += 2;
+    	oofs = stride;
+    	stride += 2;
+      vnew = new Array(4*v.length);
+      var size = obj.radii, s = size[0]/2;
+      for (i=0; i < v.length; i++) {
+        if (size.length > 1)
+          s = size[i]/2;
+        vnew[4*i]  = v[i].concat([0,0,-s,-s]);
+        vnew[4*i+1]= v[i].concat([1,0, s,-s]);
+        vnew[4*i+2]= v[i].concat([1,1, s, s]);
+        vnew[4*i+3]= v[i].concat([0,1,-s, s]);
+      }
+      v = vnew;
+      obj.vertexCount = v.length;
+    } else if (type === "text") {
+      tofs = stride;
+      stride += 2;
+      oofs = stride;
+      stride += 2;
+      vnew = new Array(4*v.length);
+      for (i=0; i < v.length; i++) {
+        vnew[4*i]  = v[i].concat([0,-0.5]).concat(obj.adj[0]);
+        vnew[4*i+1]= v[i].concat([1,-0.5]).concat(obj.adj[0]);
+        vnew[4*i+2]= v[i].concat([1, 1.5]).concat(obj.adj[0]);
+        vnew[4*i+3]= v[i].concat([0, 1.5]).concat(obj.adj[0]);
+        for (j=0; j < 4; j++) {
+          v1 = vnew[4*i+j];
+          v1[tofs+2] = 2*(v1[tofs]-v1[tofs+2])*texinfo.widths[i];
+	        v1[tofs+3] = 2*(v1[tofs+1]-v1[tofs+3])*texinfo.textHeights[i];
+	        v1[tofs] *= texinfo.widths[i]/texinfo.canvasX;
+	        v1[tofs+1] = 1.0-(texinfo.offsets[i] -
+	            v1[tofs+1]*texinfo.textHeights[i])/texinfo.canvasY;
+	        vnew[4*i+j] = v1;
+        }
+      }
+      v = vnew;
+      obj.vertexCount = v.length;
+    } else if (typeof obj.texcoords !== "undefined") {
+    	tofs = stride;
+    	stride += 2;
+    	oofs = -1;
+    	v = this.cbind(v, obj.texcoords);
+    } else {
+     	tofs = -1;
+      oofs = -1;
+    }
+
+    if (stride !== v[0].length) {
+      this.alertOnce("problem in stride calculation");
+    }
+
+    obj.vOffsets = {vofs:0, cofs:cofs, nofs:nofs, radofs:radofs, oofs:oofs, tofs:tofs, stride:stride};
+
+    obj.values = new Float32Array(this.flatten(v));
+
+    if (sprites_3d) {
+			obj.userMatrix = new CanvasMatrix4(obj.userMatrix);
+			obj.objects = this.flatten([].concat(obj.ids));
+			is_lit = false;
+    }
+
+    if (is_lit && !fixed_quads) {
+			 obj.normLoc = gl.getAttribLocation(obj.prog, "aNorm");
+    }
+
+    nclipplanes = this.countClipplanes();
+		if (nclipplanes && !sprites_3d) {
+		  obj.clipLoc = [];
+		  for (i=0; i < nclipplanes; i++)
+        obj.clipLoc[i] = gl.getUniformLocation(obj.prog,"vClipplane" + i);
+		}
+
+		if (is_lit) {
+		  obj.emissionLoc = gl.getUniformLocation(obj.prog, "emission");
+		  obj.emission = new Float32Array(this.stringToRgb(this.getMaterial(id, "emission")));
+		  obj.shininessLoc = gl.getUniformLocation(obj.prog, "shininess");
+		  obj.shininess = this.getMaterial(id, "shininess");
+		  obj.nlights = this.countLights();
+		  obj.ambientLoc = [];
+		  obj.ambient = new Float32Array(this.stringToRgb(this.getMaterial(id, "ambient")));
+		  obj.specularLoc = [];
+		  obj.specular = new Float32Array(this.stringToRgb(this.getMaterial(id, "specular")));
+		  obj.diffuseLoc = [];
+		  obj.lightDirLoc = [];
+		  obj.viewpointLoc = [];
+		  obj.finiteLoc = [];
+		  for (i=0; i < obj.nlights; i++) {
+		    obj.ambientLoc[i] = gl.getUniformLocation(obj.prog, "ambient" + i);
+		    obj.specularLoc[i] = gl.getUniformLocation(obj.prog, "specular" + i);
+		    obj.diffuseLoc[i] = gl.getUniformLocation(obj.prog, "diffuse" + i);
+		    obj.lightDirLoc[i] = gl.getUniformLocation(obj.prog, "lightDir" + i);
+		    obj.viewpointLoc[i] = gl.getUniformLocation(obj.prog, "viewpoint" + i);
+		    obj.finiteLoc[i] = gl.getUniformLocation(obj.prog, "finite" + i);
+		  }
+		}
+
+		if (is_indexed) {
+      if ((type === "quads" || type === "text" ||
+           type === "sprites") && !sprites_3d) {
+        nrows = Math.floor(obj.vertexCount/4);
+        f = Array(6*nrows);
+        for (i=0; i < nrows; i++) {
+          f[6*i] = 4*i;
+          f[6*i+1] = 4*i + 1;
+          f[6*i+2] = 4*i + 2;
+          f[6*i+3] = 4*i;
+          f[6*i+4] = 4*i + 2;
+          f[6*i+5] = 4*i + 3;
+        }
+        frowsize = 6;
+      } else if (type === "triangles") {
+        nrows = Math.floor(obj.vertexCount/3);
+        f = Array(3*nrows);
+        for (i=0; i < f.length; i++) {
+          f[i] = i;
+        }
+        frowsize = 3;
+      } else if (type === "spheres") {
+        nrows = obj.vertexCount;
+        f = Array(nrows);
+        for (i=0; i < f.length; i++) {
+          f[i] = i;
+        }
+        frowsize = 1;
+      } else if (type === "surface") {
+        var dim = obj.dim[0],
+            nx = dim[0],
+            nz = dim[1];
+        f = [];
+        for (j=0; j<nx-1; j++) {
+          for (i=0; i<nz-1; i++) {
+            f.push(j + nx*i,
+                   j + nx*(i+1),
+                   j + 1 + nx*(i+1),
+                   j + nx*i,
+                   j + 1 + nx*(i+1),
+                   j + 1 + nx*i);
+          }
+        }
+        frowsize = 6;
+      }
+		  obj.f = new Uint16Array(f);
+			if (depth_sort) {
+				drawtype = "DYNAMIC_DRAW";
+			} else {
+				drawtype = "STATIC_DRAW";
+			}
+		}
+
+		if (type !== "spheres" && !sprites_3d) {
+		  obj.buf = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, obj.buf);
+			gl.bufferData(gl.ARRAY_BUFFER, obj.values, gl.STATIC_DRAW); //
+		}
+
+		if (is_indexed && type !== "spheres" && !sprites_3d) {
+			obj.ibuf = gl.createBuffer();
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, obj.ibuf);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, obj.f, gl[drawtype]);
+		}
+
+		if (!sprites_3d) {
+			obj.mvMatLoc = gl.getUniformLocation(obj.prog, "mvMatrix");
+			obj.prMatLoc = gl.getUniformLocation(obj.prog, "prMatrix");
+		}
+
+		if (type === "text") {
+			obj.textScaleLoc = gl.getUniformLocation(obj.prog, "textScale");
+		}
+
+		if (is_lit && !sprites_3d) {
+			obj.normMatLoc = gl.getUniformLocation(obj.prog, "normMatrix");
+		}
+  };
+
+    this.setDepthTest = function(id) {
+      var gl = this.gl,
+          tests = {never: gl.NEVER,
+                   less:  gl.LESS,
+                   equal: gl.EQUAL,
+                   lequal:gl.LEQUAL,
+                   greater: gl.GREATER,
+                   notequal: gl.NOTEQUAL,
+                   gequal: gl.GEQUAL,
+                   always: gl.ALWAYS},
+           test = tests[this.getMaterial(id, "depth_test")];
+      gl.depthFunc(test);
+    };
+
+	  this.mode4type = {points : "POINTS",
+							       linestrip : "LINE_STRIP",
+							       abclines : "LINES",
+							       lines : "LINES",
+							       sprites : "TRIANGLES",
+							       planes : "TRIANGLES",
+							       text : "TRIANGLES",
+							       quads : "TRIANGLES",
+							       surface : "TRIANGLES",
+							       triangles : "TRIANGLES"};
+
+	  this.drawObj = function(id, subsceneid) {
+	    var obj = this.getObj(id),
+	        subscene = this.getObj(subsceneid),
+	        flags = obj.flags,
+	        type = obj.type,
+	        is_indexed = flags & this.f_is_indexed,
+          is_lit = flags & this.f_is_lit,
+		      has_texture = flags & this.f_has_texture,
+		      fixed_quads = flags & this.f_fixed_quads,
+		      depth_sort = flags & this.f_depth_sort,
+		      sprites_3d = flags & this.f_sprites_3d,
+		      sprite_3d = flags & this.f_sprite_3d,
+		      is_lines = flags & this.f_is_lines,
+		      gl = this.gl,
+		      sphereMV, baseofs, ofs, sscale, i, count, light,
+		      faces;
+
+		  if (typeof id !== "number") {
+		    this.alertOnce("drawObj id is "+typeof id);
+		  }
+
+			if (type === "planes") {
+			  if (obj.bbox !== subscene.par3d.bbox || !obj.initialized) {
+			    this.planeUpdateTriangles(id, subscene.par3d.bbox);
+			  }
+			}
+
+      if (!obj.initialized)
+        this.initObj(id);
+
+      if (type === "light" || type === "bboxdeco")
+        return;
+
+		  if (type === "clipplanes") {
+			  count = obj.offsets.length;
+			  var IMVClip = [];
+			  for (i=0; i < count; i++) {
+				  IMVClip[i] = this.multMV(this.invMatrix, obj.vClipplane.slice(4*i, 4*(i+1)));
+ 			  }
+ 			  obj.IMVClip = IMVClip;
+        return;
+			}
+
+      this.setDepthTest(id);
+
+      if (sprites_3d) {
+			  var norigs = obj.vertices.length,
+			      savenorm = new CanvasMatrix4(this.normMatrix);
+			  this.origs = obj.vertices;
+				this.usermat = new Float32Array(obj.userMatrix.getAsArray());
+				this.radii = obj.radii;
+				this.normMatrix = subscene.spriteNormmat;
+				for (this.iOrig=0; this.iOrig < norigs; this.iOrig++) {
+			    for (i=0; i < obj.objects.length; i++) {
+					  this.drawObj(obj.objects[i], subsceneid);
+					}
+				}
+				this.normMatrix = savenorm;
+				return;
+			} else {
+				gl.useProgram(obj.prog);
+			}
+
+			if (sprite_3d) {
+			  gl.uniform3fv(obj.origLoc, new Float32Array(this.origs[this.iOrig]));
+			  if (this.radii.length > 1) {
+				  gl.uniform1f(obj.sizeLoc, this.radii[this.iOrig][0]);
+			  } else {
+			    gl.uniform1f(obj.sizeLoc, this.radii[0][0]);
+			  }
+				gl.uniformMatrix4fv(obj.usermatLoc, false, this.usermat);
+			}
+
+			if (type === "spheres") {
+			  gl.bindBuffer(gl.ARRAY_BUFFER, this.sphere.buf);
+			} else {
+				gl.bindBuffer(gl.ARRAY_BUFFER, obj.buf);
+			}
+
+			if (is_indexed && type !== "spheres") {
+			  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, obj.ibuf);
+			} else if (type === "spheres") {
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.sphere.ibuf);
+			}
+
+			gl.uniformMatrix4fv( obj.prMatLoc, false, new Float32Array(this.prMatrix.getAsArray()) );
+			gl.uniformMatrix4fv( obj.mvMatLoc, false, new Float32Array(this.mvMatrix.getAsArray()) );
+      var clipcheck = 0,
+          clipplaneids = subscene.clipplanes,
+          clip, j;
+			for (i=0; i < clipplaneids.length; i++) {
+			  clip = this.getObj(clipplaneids[i]);
+			  for (j=0; j < clip.offsets.length; j++) {
+			    gl.uniform4fv(obj.clipLoc[clipcheck + j], clip.IMVClip[j]);
+			  }
+			  clipcheck += clip.offsets.length;
+			}
+			if (typeof obj.clipLoc !== "undefined")
+			  for (i=clipcheck; i < obj.clipLoc.length; i++)
+			    gl.uniform4f(obj.clipLoc[i], 0,0,0,0);
+
+			if (is_lit) {
+			  gl.uniformMatrix4fv( obj.normMatLoc, false, new Float32Array(this.normMatrix.getAsArray()) );
+			  gl.uniform3fv( obj.emissionLoc, obj.emission);
+			  gl.uniform1f( obj.shininessLoc, obj.shininess);
+			  for (i=0; i < subscene.lights.length; i++) {
+			    light = this.getObj(subscene.lights[i]);
+			    gl.uniform3fv( obj.ambientLoc[i], this.componentProduct(light.ambient, obj.ambient));
+			    gl.uniform3fv( obj.specularLoc[i], this.componentProduct(light.specular, obj.specular));
+			    gl.uniform3fv( obj.diffuseLoc[i], light.diffuse);
+			    gl.uniform3fv( obj.lightDirLoc[i], light.lightDir);
+			    gl.uniform1i( obj.viewpointLoc[i], light.viewpoint);
+			    gl.uniform1i( obj.finiteLoc[i], light.finite);
+			  }
+			  for (i=subscene.lights.length; i < obj.nlights; i++) {
+			    gl.uniform3f( obj.ambientLoc[i], 0,0,0);
+			    gl.uniform3f( obj.specularLoc[i], 0,0,0);
+			    gl.uniform3f( obj.diffuseLoc[i], 0,0,0);
+			  }
+			}
+
+			if (type === "text") {
+				gl.uniform2f( obj.textScaleLoc, 0.75/this.vp.width, 0.75/this.vp.height);
+			}
+
+			gl.enableVertexAttribArray( this.posLoc );
+
+			var nc = obj.colorCount;
+      count = obj.vertexCount;
+			if (depth_sort) {
+						var nfaces = obj.centers.length,
+						    frowsize, z, w;
+						if (sprites_3d) frowsize = 1;
+						else if (type === "triangles") frowsize = 3;
+						else frowsize = 6;
+            var depths = new Float32Array(nfaces);
+						faces = new Array(nfaces);
+						for(i=0; i<nfaces; i++) {
+							z = this.prmvMatrix.m13*obj.centers[3*i] +
+							    this.prmvMatrix.m23*obj.centers[3*i+1] +
+						      this.prmvMatrix.m33*obj.centers[3*i+2] +
+					        this.prmvMatrix.m43;
+							w = this.prmvMatrix.m14*obj.centers[3*i] +
+				  			  this.prmvMatrix.m24*obj.centers[3*i+1] +
+					  		  this.prmvMatrix.m34*obj.centers[3*i+2] +
+						  	  this.prmvMatrix.m44;
+							depths[i] = z/w;
+							faces[i] = i;
+						}
+						var depthsort = function(i,j) { return depths[j] - depths[i]; };
+						faces.sort(depthsort);
+
+						if (type !== "spheres") {
+						  var f = new Uint16Array(obj.f.length);
+							for (i=0; i<nfaces; i++) {
+					  	  for (j=0; j<frowsize; j++) {
+							    f[frowsize*i + j] = obj.f[frowsize*faces[i] + j];
+							  }
+							}
+							gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, f, gl.DYNAMIC_DRAW);
+						}
+					}
+
+			if (type === "spheres") {
+				subscene = this.getObj(subsceneid);
+				var scale = subscene.par3d.scale,
+						scount = count;
+				gl.vertexAttribPointer(this.posLoc,  3, gl.FLOAT, false, this.sphere.sphereStride,  0);
+				gl.enableVertexAttribArray(obj.normLoc );
+				gl.vertexAttribPointer(obj.normLoc,  3, gl.FLOAT, false, this.sphere.sphereStride,  0);
+				gl.disableVertexAttribArray( this.colLoc );
+				var sphereNorm = new CanvasMatrix4();
+				sphereNorm.scale(scale[0], scale[1], scale[2]);
+				sphereNorm.multRight(this.normMatrix);
+				gl.uniformMatrix4fv( obj.normMatLoc, false, new Float32Array(sphereNorm.getAsArray()) );
+
+			  if (nc == 1) {
+				  gl.vertexAttrib4fv( this.colLoc, new Float32Array(obj.onecolor));
+			  }
+
+			  for (i = 0; i < scount; i++) {
+			    sphereMV = new CanvasMatrix4();
+
+			  	if (depth_sort) {
+				    baseofs = faces[i]*obj.vOffsets.stride;
+				  } else {
+				    baseofs = i*obj.vOffsets.stride;
+				  }
+
+          ofs = baseofs + obj.vOffsets.radofs;
+				  sscale = obj.values[ofs];
+
+				  sphereMV.scale(sscale/scale[0], sscale/scale[1], sscale/scale[2]);
+				  sphereMV.translate(obj.values[baseofs],
+				                     obj.values[baseofs+1],
+				                     obj.values[baseofs+2]);
+				  sphereMV.multRight(this.mvMatrix);
+				  gl.uniformMatrix4fv( obj.mvMatLoc, false, new Float32Array(sphereMV.getAsArray()) );
+
+				  if (nc > 1) {
+				    ofs = baseofs + obj.vOffsets.cofs;
+					  gl.vertexAttrib4f( this.colLoc, obj.values[ofs],
+					   		                       obj.values[ofs+1],
+                                       obj.values[ofs+2],
+							                         obj.values[ofs+3] );
+				  }
+				  gl.drawElements(gl.TRIANGLES, this.sphere.sphereCount, gl.UNSIGNED_SHORT, 0);
+
+			  }
+			  return;
+			} else {
+				if (obj.colorCount === 1) {
+					gl.disableVertexAttribArray( this.colLoc );
+				  gl.vertexAttrib4fv( this.colLoc, new Float32Array(obj.onecolor));
+				} else {
+					gl.enableVertexAttribArray( this.colLoc );
+					gl.vertexAttribPointer(this.colLoc, 4, gl.FLOAT, false, 4*obj.vOffsets.stride, 4*obj.vOffsets.cofs);
+				}
+      }
+
+			if (is_lit && obj.vOffsets.nofs > 0) {
+				gl.enableVertexAttribArray( obj.normLoc );
+				gl.vertexAttribPointer(obj.normLoc, 3, gl.FLOAT, false, 4*obj.vOffsets.stride, 4*obj.vOffsets.nofs);
+			}
+
+			if (has_texture || type === "text") {
+				gl.enableVertexAttribArray( obj.texLoc );
+				gl.vertexAttribPointer(obj.texLoc, 2, gl.FLOAT, false, 4*obj.vOffsets.stride, 4*obj.vOffsets.tofs);
+				gl.activeTexture(gl.TEXTURE0);
+				gl.bindTexture(gl.TEXTURE_2D, obj.texture);
+				gl.uniform1i( obj.sampler, 0);
+			}
+
+			if (fixed_quads) {
+				gl.enableVertexAttribArray( obj.ofsLoc );
+				gl.vertexAttribPointer(obj.ofsLoc, 2, gl.FLOAT, false, 4*obj.vOffsets.stride, 4*obj.vOffsets.oofs);
+			}
+
+			var mode = this.mode4type[type];
+
+      if (type === "sprites" || type === "text" || type === "quads") {
+        count = count * 6/4;
+      } else if (type === "surface") {
+				count = obj.f.length;
+      }
+
+			if (is_lines) {
+				gl.lineWidth( this.getMaterial(id, "lwd") );
+			}
+
+			gl.vertexAttribPointer(this.posLoc,  3, gl.FLOAT, false, 4*obj.vOffsets.stride,  4*obj.vOffsets.vofs);
+
+			if (is_indexed) {
+			  gl.drawElements(gl[mode], count, gl.UNSIGNED_SHORT, 0);
+			} else {
+			  gl.drawArrays(gl[mode], 0, count);
+			}
+	 };
+
+	  this.drawSubscene = function(subsceneid) {
+		  var gl = this.gl,
+		      obj = this.getObj(subsceneid),
+		      objects = this.scene.objects,
+		      subids = obj.objects,
+		      subscene_has_faces = false,
+		      subscene_needs_sorting = false,
+		      flags, i;
+      if (obj.par3d.skipRedraw)
+        return;
+		  for (i=0; i < subids.length; i++) {
+		    flags = objects[subids[i]].flags;
+		    if (typeof flags !== "undefined") {
+		      subscene_has_faces |= (flags & this.f_is_lit)
+		                       & !(flags & this.f_fixed_quads);
+		      subscene_needs_sorting |= (flags & this.f_depth_sort);
+		    }
+		  }
+
+		  var bgid = obj.backgroundId,
+		      bg;
+
+      this.setViewport(subsceneid);
+      if (typeof bgid !== "undefined" && objects[bgid].colors.length) {
+			  bg = objects[bgid].colors[0];
+			  gl.clearColor(bg[0], bg[1], bg[2], bg[3]);
+			  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      }
+
+			if (subids.length) {
+			  this.setprMatrix(subsceneid);
+			  this.setmvMatrix(subsceneid);
+
+				if (subscene_has_faces) {
+				  this.setnormMatrix(subsceneid);
+				  if ((obj.flags & this.f_sprites_3d) &&
+				      typeof obj.spriteNormmat === "undefined") {
+				    obj.spriteNormmat = new CanvasMatrix4(this.normMatrix);
+				  }
+				}
+
+				if (subscene_needs_sorting)
+				  this.setprmvMatrix();
+
+				var clipids = obj.clipplanes;
+				if (clipids.length > 0) {
+				  this.invMatrix = new CanvasMatrix4(this.mvMatrix);
+				  this.invMatrix.invert();
+				  for (i = 0; i < clipids.length; i++)
+				    this.drawObj(clipids[i], subsceneid);
+				}
+				subids = obj.opaque;
+				if (subids.length > 0) {
+				  gl.depthMask(true);
+				  gl.disable(gl.BLEND);
+				  for (i = 0; subids && i < subids.length; i++) {
+				    this.drawObj(subids[i], subsceneid);
+				  }
+				}
+				subids = obj.transparent;
+				if (subids.length > 0) {
+				  gl.depthMask(false);
+				  gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA,
+				                       gl.ONE, gl.ONE);
+				  gl.enable(gl.BLEND);
+				  for (i = 0; i < subids.length; i++) {
+				    this.drawObj(subids[i], subsceneid);
+				  }
+				}
+				subids = obj.subscenes;
+				for (i = 0; i < subids.length; i++) {
+				  this.drawSubscene(subids[i]);
+				}
+			}
+	  };
+
+    this.relMouseCoords = function(event) {
+		  var totalOffsetX = 0,
+		  totalOffsetY = 0,
+		  currentElement = this.canvas;
+
+		  do {
+		    totalOffsetX += currentElement.offsetLeft;
+		    totalOffsetY += currentElement.offsetTop;
+		    currentElement = currentElement.offsetParent;
+		  }
+		  while(currentElement);
+
+		  var canvasX = event.pageX - totalOffsetX,
+		      canvasY = event.pageY - totalOffsetY;
+
+		  return {x:canvasX, y:canvasY};
+		};
+
+    this.setMouseHandlers = function() {
+      var self = this, activeSubscene, handler,
+          handlers = {}, drag = 0;
+
+    handlers.rotBase = 0;
+
+		this.screenToVector = function(x, y) {
+		  var viewport = this.getObj(activeSubscene).par3d.viewport,
+		    width = viewport.width*this.canvas.width,
+			  height = viewport.height*this.canvas.height,
+			  radius = Math.max(width, height)/2.0,
+			  cx = width/2.0,
+			  cy = height/2.0,
+			  px = (x-cx)/radius,
+			  py = (y-cy)/radius,
+			  plen = Math.sqrt(px*px+py*py);
+			if (plen > 1.e-6) {
+			  px = px/plen;
+			  py = py/plen;
+			}
+			var angle = (Math.SQRT2 - plen)/Math.SQRT2*Math.PI/2,
+			  z = Math.sin(angle),
+			  zlen = Math.sqrt(1.0 - z*z);
+			px = px * zlen;
+			py = py * zlen;
+			return [px, py, z];
+		};
+
+		handlers.trackballdown = function(x,y) {
+			var activeSub = this.getObj(activeSubscene),
+			    activeModel = this.getObj(this.useid(activeSub.id, "model")),
+			  i, l = activeModel.par3d.listeners;
+			handlers.rotBase = this.screenToVector(x, y);
+			this.saveMat = [];
+			for (i = 0; i < l.length; i++) {
+			  activeSub = this.getObj(l[i]);
+			  activeSub.saveMat = new CanvasMatrix4(activeSub.par3d.userMatrix);
+			}
+		};
+
+		handlers.trackballmove = function(x,y) {
+			var rotCurrent = this.screenToVector(x,y),
+			    rotBase = handlers.rotBase,
+				dot = rotBase[0]*rotCurrent[0] +
+						  rotBase[1]*rotCurrent[1] +
+			  	   	rotBase[2]*rotCurrent[2],
+				angle = Math.acos( dot/this.vlen(rotBase)/this.vlen(rotCurrent) )*180.0/Math.PI,
+				axis = this.xprod(rotBase, rotCurrent),
+				objects = this.scene.objects,
+				activeSub = this.getObj(activeSubscene),
+				activeModel = this.getObj(this.useid(activeSub.id, "model")),
+				l = activeModel.par3d.listeners,
+				i;
+		  for (i = 0; i < l.length; i++) {
+		    activeSub = this.getObj(l[i]);
+			  activeSub.par3d.userMatrix.load(objects[l[i]].saveMat);
+				activeSub.par3d.userMatrix.rotate(angle, axis[0], axis[1], axis[2]);
+			}
+			this.drawScene();
+		};
+		handlers.trackballend = 0;
+
+    handlers.axisdown = function(x,y) {
+		  handlers.rotBase = this.screenToVector(x, this.canvas.height/2);
+			var activeSub = this.getObj(activeSubscene),
+			    activeModel = this.getObj(this.useid(activeSub.id, "model")),
+			  i, l = activeModel.par3d.listeners;
+			for (i = 0; i < l.length; i++) {
+			  activeSub = this.getObj(l[i]);
+			  activeSub.saveMat = new CanvasMatrix4(activeSub.par3d.userMatrix);
+			}
+		};
+
+		handlers.axismove = function(x,y) {
+		  var rotCurrent = this.screenToVector(x, this.canvas.height/2),
+		      rotBase = handlers.rotBase,
+					angle = (rotCurrent[0] - rotBase[0])*180/Math.PI,
+			    rotMat = new CanvasMatrix4();
+			rotMat.rotate(angle, handlers.axis[0], handlers.axis[1], handlers.axis[2]);
+			var activeSub = this.getObj(activeSubscene),
+			    activeModel = this.getObj(this.useid(activeSub.id, "model")),
+			  i, l = activeModel.par3d.listeners;
+			for (i = 0; i < l.length; i++) {
+			  activeSub = this.getObj(l[i]);
+			  activeSub.par3d.userMatrix.load(activeSub.saveMat);
+			  activeSub.par3d.userMatrix.multLeft(rotMat);
+			}
+			this.drawScene();
+		};
+    handlers.axisend = 0;
+
+    handlers.y0zoom = 0;
+		handlers.zoom0 = 0;
+		handlers.zoomdown = function(x, y) {
+		  var activeSub = this.getObj(activeSubscene),
+        activeProjection = this.getObj(this.useid(activeSub.id, "projection")),
+			  i, l = activeProjection.par3d.listeners;
+		  handlers.y0zoom = y;
+		  for (i = 0; i < l.length; i++) {
+			  activeSub = this.getObj(l[i]);
+			  activeSub.zoom0 = Math.log(activeSub.par3d.zoom);
+			}
+		};
+    handlers.zoommove = function(x, y) {
+			var activeSub = this.getObj(activeSubscene),
+			    activeProjection = this.getObj(this.useid(activeSub.id, "projection")),
+			  i, l = activeProjection.par3d.listeners;
+			for (i = 0; i < l.length; i++) {
+			  activeSub = this.getObj(l[i]);
+			  activeSub.par3d.zoom = Math.exp(activeSub.zoom0 + (y-handlers.y0zoom)/this.canvas.height);
+			}
+				this.drawScene();
+		  };
+    handlers.zoomend = 0;
+
+    handlers.y0fov = 0;
+		handlers.fovdown = function(x, y) {
+			  handlers.y0fov = y;
+				var activeSub = this.getObj(activeSubscene),
+			    activeProjection = this.getObj(this.useid(activeSub.id, "projection")),
+			  i, l = activeProjection.par3d.listeners;
+				for (i = 0; i < l.length; i++) {
+				  activeSub = this.getObj(l[i]);
+				  activeSub.fov0 = activeSub.par3d.FOV;
+				}
+			};
+    handlers.fovmove = function(x, y) {
+			var activeSub = this.getObj(activeSubscene),
+			    activeProjection = this.getObj(this.useid(activeSub.id, "projection")),
+			  i, l = activeProjection.par3d.listeners;
+				for (i = 0; i < l.length; i++) {
+				  activeSub = this.getObj(l[i]);
+				  activeSub.par3d.FOV = Math.max(1, Math.min(179, activeSub.fov0 +
+				     180*(y-handlers.y0fov)/this.canvas.height));
+				}
+				this.drawScene();
+			};
+    handlers.fovend = 0;
+
+		  this.canvas.onmousedown = function ( ev ){
+		    if (!ev.which) // Use w3c defns in preference to MS
+		    switch (ev.button) {
+		      case 0: ev.which = 1; break;
+		      case 1:
+		      case 4: ev.which = 2; break;
+		      case 2: ev.which = 3;
+		    }
+		    drag = ["left", "middle", "right"][ev.which-1];
+		    var coords = self.relMouseCoords(ev);
+		    coords.y = self.canvas.height-coords.y;
+		    activeSubscene = self.whichSubscene(coords);
+		    var sub = self.getObj(activeSubscene), f;
+		    handler = sub.par3d.mouseMode[drag];
+		    switch (handler) {
+		    case "xAxis":
+		      handler = "axis";
+		      handlers.axis = [1.0, 0.0, 0.0];
+		      break;
+		    case "yAxis":
+		      handler = "axis";
+		      handlers.axis = [0.0, 1.0, 0.0];
+		      break;
+		    case "zAxis":
+		      handler = "axis";
+		      handlers.axis = [0.0, 0.0, 1.0];
+		      break;
+		    }
+		    f = handlers[handler + "down"];
+		    if (f) {
+		      coords = self.translateCoords(activeSubscene, coords);
+		      f.call(self, coords.x, coords.y);
+		      ev.preventDefault();
+		    }
+		  };
+
+		  this.canvas.onmouseup = function ( ev ){
+		    if ( drag === 0 ) return;
+		    var f = handlers[handler + "up"];
+		    if (f)
+		      f();
+		    drag = 0;
+		  };
+
+		  this.canvas.onmouseout = this.canvas.onmouseup;
+
+		  this.canvas.onmousemove = function ( ev ) {
+		    if ( drag === 0 ) return;
+		    var f = handlers[handler + "move"];
+		    if (f) {
+		      var coords = self.relMouseCoords(ev);
+		      coords.y = self.canvas.height - coords.y;
+		      coords = self.translateCoords(activeSubscene, coords);
+		      f.call(self, coords.x, coords.y);
+		    }
+		  };
+
+		  handlers.wheelHandler = function(ev) {
+		    var del = 1.02, i;
+		    if (ev.shiftKey) del = 1.002;
+		    var ds = ((ev.detail || ev.wheelDelta) > 0) ? del : (1 / del);
+		    if (typeof activeSubscene === "undefined")
+		      activeSubscene = self.scene.rootSubscene;
+			  var activeSub = self.getObj(activeSubscene),
+			      activeProjection = self.getObj(self.useid(activeSub.id, "projection")),
+			      l = activeProjection.par3d.listeners;
+
+		    for (i = 0; i < l.length; i++) {
+		      activeSub = self.getObj(l[i]);
+		      activeSub.par3d.zoom *= ds;
+		    }
+		    self.drawScene();
+		    ev.preventDefault();
+		  };
+
+		  this.canvas.addEventListener("DOMMouseScroll", handlers.wheelHandler, false);
+		  this.canvas.addEventListener("mousewheel", handlers.wheelHandler, false);
+		};
+
+		this.useid = function(subsceneid, type) {
+		  var sub = this.getObj(subsceneid);
+		  if (sub.embeddings[type] === "inherit")
+		    return(this.useid(sub.parent, type));
+		  else
+		    return subsceneid;
+		};
+
+		this.inViewport = function(coords, subsceneid) {
+		  var viewport = this.getObj(subsceneid).par3d.viewport,
+		    x0 = coords.x - viewport.x*this.canvas.width,
+		    y0 = coords.y - viewport.y*this.canvas.height;
+		  return 0 <= x0 && x0 <= viewport.width*this.canvas.width &&
+		         0 <= y0 && y0 <= viewport.height*this.canvas.height;
+		};
+
+    this.whichSubscene = function(coords) {
+      var self = this,
+          recurse = function(subsceneid) {
+            var subscenes = self.getChildSubscenes(subsceneid), i, id;
+            for (i=0; i < subscenes.length; i++) {
+              id = recurse(subscenes[i]);
+              if (typeof(id) !== "undefined")
+                return(id);
+            }
+            if (self.inViewport(coords, subsceneid))
+              return(subsceneid);
+            else
+              return undefined;
+          },
+          rootid = this.scene.rootSubscene,
+          result = recurse(rootid);
+      if (typeof(result) === "undefined")
+        result = rootid;
+      return result;
+    };
+
+    this.translateCoords = function(subsceneid, coords) {
+      var viewport = this.getObj(subsceneid).par3d.viewport;
+      return {x: coords.x - viewport.x*this.canvas.width,
+              y: coords.y - viewport.y*this.canvas.height};
+    };
+
+    this.initSphere = function(verts) {
+      var gl = this.gl, reuse = verts.reuse, result;
+      if (typeof reuse !== "undefined") {
+        var prev = document.getElementById(reuse).rglinstance.sphere;
+        result = {vb: prev.vb, it: prev.it};
+      } else {
+        result = {vb: new Float32Array(this.flatten(this.transpose(verts.vb))),
+              it: new Uint16Array(this.flatten(this.transpose(verts.it)))};
+      }
+      result.sphereStride = 12;
+      result.sphereCount = result.it.length;
+	    result.buf = gl.createBuffer();
+	    gl.bindBuffer(gl.ARRAY_BUFFER, result.buf);
+	    gl.bufferData(gl.ARRAY_BUFFER, result.vb, gl.STATIC_DRAW);
+	    result.ibuf = gl.createBuffer();
+	    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, result.ibuf);
+	    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, result.it, gl.STATIC_DRAW);
+
+      return result;
+    };
+
+		this.initialize = function(el, x) {
+		  this.textureCanvas = document.createElement("canvas");
+		  this.textureCanvas.style.display = "block";
+		  this.scene = x;
+	    this.normMatrix = new CanvasMatrix4();
+	    this.saveMat = {};
+	    this.distance = null;
+	    this.posLoc = 0;
+	    this.colLoc = 1;
+	    if (el) {
+	      el.rglinstance = this;
+	      this.initCanvas(el);
+	    }
+		};
+
+		this.initCanvas = function(el) {
+		  this.canvas = document.createElement("canvas");
+		  this.resize(el);
+		  while (el.firstChild) {
+        el.removeChild(el.firstChild);
+      }
+		  el.appendChild(this.canvas);
+		  this.initGL0();
+		  if (!this.gl)
+		    return;
+	    var objs = this.scene.objects,
+	        self = this;
+	    this.sphere = this.initSphere(this.scene.sphereVerts);
+	    Object.keys(objs).forEach(function(key){
+	      var id = parseInt(key, 10),
+	          obj = self.getObj(id);
+	      if (typeof obj.reuse !== "undefined")
+	        self.copyObj(id, obj.reuse);
+	    });
+	    Object.keys(objs).forEach(function(key){
+	      self.initSubscene(parseInt(key, 10));
+	    });
+	    Object.keys(objs).forEach(function(key){
+		    self.initObj(parseInt(key, 10));
+		  });
+		  this.setMouseHandlers();
+		};
+
+		/* this is only used by .writeWebGL; rglwidget has
+		   no debug element and does the drawing in rglwidget.js */
+
+		this.start = function() {
+		  if (typeof this.prefix !== "undefined") {
+		    this.debugelement = document.getElementById(this.prefix + "debug");
+	      this.debug("");
+		  }
+		  this.drag = 0;
+		  this.drawScene();
+		};
+
+		this.debug = function(msg, img) {
+		  if (typeof this.debugelement !== "undefined") {
+		    this.debugelement.innerHTML = msg;
+		    if (typeof img !== "undefined") {
+		      this.debugelement.insertBefore(img, this.debugelement.firstChild);
+		    }
+		  } else
+		    alert(msg);
+		};
+
+    this.getSnapshot = function() {
+      var img;
+	    if (typeof this.scene.snapshot !== "undefined") {
+	      img = document.createElement("img");
+	      img.src = this.scene.snapshot;
+	      img.alt = "Snapshot";
+	    }
+	    return img;
+    };
+
+    this.initGL0 = function() {
+	    if (!window.WebGLRenderingContext){
+	      this.debug("Your browser does not support WebGL. See <a href=\"http://get.webgl.org\">http://get.webgl.org</a>", this.getSnapshot());
+	      return;
+	    }
+	    try {
+	      this.initGL();
+	    }
+	    catch(e) {}
+	    if ( !this.gl ) {
+	      this.debug("Your browser appears to support WebGL, but did not create a WebGL context.  See <a href=\"http://get.webgl.org\">http://get.webgl.org</a>",
+	            this.getSnapshot());
+	      return;
+	    }
+    };
+
+    this.initGL = function() {
+	   this.gl = this.canvas.getContext("webgl") ||
+	               this.canvas.getContext("experimental-webgl");
+	 };
+
+    this.resize = function(el) {
+      this.canvas.width = el.width;
+      this.canvas.height = el.height;
+    };
+
+    this.drawScene = function() {
+      var gl = this.gl;
+      if (!gl)
+        this.alertOnce("No WebGL context.");
+      gl.enable(gl.DEPTH_TEST);
+	    gl.depthFunc(gl.LEQUAL);
+	    gl.clearDepth(1.0);
+	    gl.clearColor(1,1,1,1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			this.drawSubscene(this.scene.rootSubscene);
+			this.drawing = false;
+		};
+
+		this.subsetSetter = function(el, control) {
+		  if (typeof control.subscenes === "undefined" ||
+		      control.subscenes === null)
+        control.subscenes = this.scene.rootSubscene;
+      var value = Math.round(control.value),
+          subscenes = [].concat(control.subscenes),
+          i, j, entries, subsceneid,
+          ismissing = function(x) {
+            return control.fullset.indexOf(x) < 0;
+          },
+          tointeger = function(x) {
+            return parseInt(x, 10);
+          };
+
+      for (i=0; i < subscenes.length; i++) {
+        subsceneid = subscenes[i];
+        if (typeof this.getObj(subsceneid) === "undefined")
+          this.alertOnce("typeof object is undefined");
+        entries = this.getObj(subsceneid).objects;
+        entries = entries.filter(ismissing);
+        if (control.accumulate) {
+          for (j=0; j<=value; j++)
+            entries = entries.concat(control.subsets[j]);
+        } else {
+          entries = entries.concat(control.subsets[value]);
+        }
+        entries = entries.map(tointeger);
+        this.setSubsceneEntries(this.unique(entries), subsceneid);
+      }
+		};
+
+		this.propertySetter = function(el, control)  {
+		  var value = control.value,
+		      values = [].concat(control.values),
+		      svals = [].concat(control.param),
+		      direct = values[0] === null,
+		      entries = [].concat(control.entries),
+		      ncol = entries.length,
+		      nrow = values.length/ncol,
+		      properties = this.repeatToLen(control.properties, ncol),
+		      objids = this.repeatToLen(control.objids, ncol),
+		      property = properties[0], objid = objids[0],
+		      obj = this.getObj(objid),
+		      propvals, i, v1, v2, p, entry, gl, needsBinding,
+		      newprop, newid,
+
+		      getPropvals = function() {
+            if (property === "userMatrix")
+              return obj.userMatrix.getAsArray();
+            else
+              return obj[property];
+		      };
+
+      if (direct && typeof value === "undefined")
+        return;
+
+      if (control.interp) {
+        values = values.slice(0, ncol).concat(values).
+                 concat(values.slice(ncol*(nrow-1), ncol*nrow));
+        svals = [-Infinity].concat(svals).concat(Infinity);
+        for (i = 1; i < svals.length; i++) {
+          if (value <= svals[i]) {
+            if (svals[i] === Infinity)
+              p = 1;
+            else
+              p = (svals[i] - value)/(svals[i] - svals[i-1]);
+            break;
+          }
+        }
+      } else if (!direct) {
+        value = Math.round(value);
+      }
+
+      propvals = getPropvals();
+
+      for (j=0; j<entries.length; j++) {
+        entry = entries[j];
+        newprop = properties[j];
+        newid = objids[j];
+
+        if (newprop != property || newid != objid) {
+          property = newprop;
+          objid = newid;
+          obj = this.getObj(objid);
+          propvals = getPropvals();
+        }
+        if (control.interp) {
+          v1 = values[ncol*(i-1) + j];
+          v2 = values[ncol*i + j];
+          this.setElement(propvals, entry, p*v1 + (1-p)*v2);
+        } else if (!direct) {
+          this.setElement(propvals, entry, values[ncol*value + j]);
+        } else {
+          this.setElement(propvals, entry, value[j]);
+        }
+      }
+      needsBinding = [];
+      for (j=0; j < entries.length; j++) {
+        if (properties[j] === "values" &&
+            needsBinding.indexOf(objids[j]) === -1) {
+          needsBinding.push(objids[j]);
+        }
+      }
+      for (j=0; j < needsBinding.length; j++) {
+        gl = this.gl;
+        obj = this.getObj(needsBinding[j]);
+        gl.bindBuffer(gl.ARRAY_BUFFER, obj.buf);
+        gl.bufferData(gl.ARRAY_BUFFER, obj.values, gl.STATIC_DRAW);
+      }
+    };
+
+    this.vertexSetter = function(el, control)  {
+      var svals = [].concat(control.param),
+          j, k, p, propvals, stride, ofs, obj,
+          attrib,
+          ofss    = {x:"vofs", y:"vofs", z:"vofs",
+                     red:"cofs", green:"cofs", blue:"cofs",
+                     alpha:"cofs", radii:"radofs",
+                     nx:"nofs", ny:"nofs", nz:"nofs",
+                     ox:"oofs", oy:"oofs", oz:"oofs",
+                     ts:"tofs", tt:"tofs"},
+          pos     = {x:0, y:1, z:2,
+                     red:0, green:1, blue:2,
+                     alpha:3,radii:0,
+                     nx:0, ny:1, nz:2,
+                     ox:0, oy:1, oz:2,
+                     ts:0, tt:1},
+  	    values = control.values,
+		    direct = values === null,
+		    ncol,
+        interp = control.interp,
+        vertices = [].concat(control.vertices),
+        attributes = [].concat(control.attributes),
+        value = control.value;
+
+      ncol = Math.max(vertices.length, attributes.length);
+
+      if (!ncol)
+        return;
+
+      vertices = this.repeatToLen(vertices, ncol);
+      attributes = this.repeatToLen(attributes, ncol);
+
+      if (direct)
+        interp = false;
+
+      /* JSON doesn't pass Infinity */
+      svals[0] = -Infinity;
+      svals[svals.length - 1] = Infinity;
+
+      for (j = 1; j < svals.length; j++) {
+        if (value <= svals[j]) {
+          if (interp) {
+            if (svals[j] === Infinity)
+              p = 1;
+            else
+              p = (svals[j] - value)/(svals[j] - svals[j-1]);
+          } else {
+            if (svals[j] - value > value - svals[j-1])
+              j = j - 1;
+          }
+          break;
+        }
+      }
+
+      obj = this.getObj(control.objid);
+      propvals = obj.values;
+      for (k=0; k<ncol; k++) {
+        attrib = attributes[k];
+        vertex = vertices[k];
+        ofs = obj.vOffsets[ofss[attrib]];
+        if (ofs < 0)
+          this.alertOnce("Attribute '"+attrib+"' not found in object "+control.objid);
+        else {
+          stride = obj.vOffsets.stride;
+          ofs = vertex*stride + ofs + pos[attrib];
+          if (direct) {
+            propvals[ofs] = value;
+          } else if (interp) {
+            propvals[ofs] = p*values[j-1][k] + (1-p)*values[j][k];
+          } else {
+            propvals[ofs] = values[j][k];
+          }
+        }
+      }
+      if (typeof obj.buf !== "undefined") {
+        var gl = this.gl;
+        gl.bindBuffer(gl.ARRAY_BUFFER, obj.buf);
+        gl.bufferData(gl.ARRAY_BUFFER, propvals, gl.STATIC_DRAW);
+      }
+    };
+
+    this.ageSetter = function(el, control) {
+      var objids = [].concat(control.objids),
+          nobjs = objids.length,
+          time = control.value,
+          births = [].concat(control.births),
+          ages = [].concat(control.ages),
+          steps = births.length,
+          j = Array(steps),
+          p = Array(steps),
+          i, k, age, j0, propvals, stride, ofs, objid, obj,
+          attrib, dim,
+          attribs = ["colors", "alpha", "radii", "vertices",
+                     "normals", "origins", "texcoords",
+                     "x", "y", "z",
+                     "red", "green", "blue"],
+          ofss    = ["cofs", "cofs", "radofs", "vofs",
+                     "nofs", "oofs", "tofs",
+                     "vofs", "vofs", "vofs",
+                     "cofs", "cofs", "cofs"],
+          dims    = [3,1,1,3,
+                     3,2,2,
+                     1,1,1,
+                     1,1,1],
+          pos     = [0,3,0,0,
+                     0,0,0,
+                     0,1,2,
+                     0,1,2];
+      /* Infinity doesn't make it through JSON */
+      ages[0] = -Infinity;
+      ages[ages.length-1] = Infinity;
+      for (i = 0; i < steps; i++) {
+        if (births[i] !== null) {  // NA in R becomes null
+          age = time - births[i];
+          for (j0 = 1; age > ages[j0]; j0++);
+          if (ages[j0] == Infinity)
+            p[i] = 1;
+          else if (ages[j0] > ages[j0-1])
+            p[i] = (ages[j0] - age)/(ages[j0] - ages[j0-1]);
+          else
+            p[i] = 0;
+          j[i] = j0;
+        }
+      }
+      for (l = 0; l < nobjs; l++) {
+        objid = objids[l];
+        obj = this.getObj(objid);
+        propvals = obj.values;
+        stride = obj.vOffsets.stride;
+        for (k = 0; k < attribs.length; k++) {
+          attrib = control[attribs[k]];
+          if (typeof attrib !== "undefined") {
+            ofs = obj.vOffsets[ofss[k]];
+            if (ofs >= 0) {
+              dim = dims[k];
+              ofs = ofs + pos[k];
+              for (i = 0; i < steps; i++) {
+                if (births[i] !== null) {
+                  for (d=0; d < dim; d++) {
+                    propvals[i*stride + ofs + d] = p[i]*attrib[dim*(j[i]-1) + d] + (1-p[i])*attrib[dim*j[i] + d];
+                  }
+                }
+              }
+            } else
+              this.alertOnce("\'"+attribs[k]+"\' property not found in object "+objid);
+          }
+        }
+        obj.values = propvals;
+        if (typeof obj.buf !== "undefined") {
+          gl = this.gl;
+          gl.bindBuffer(gl.ARRAY_BUFFER, obj.buf);
+          gl.bufferData(gl.ARRAY_BUFFER, obj.values, gl.STATIC_DRAW);
+        }
+      }
+		};
+
+		this.oldBridge = function(el, control) {
+		  var attrname, global = window[control.prefix + "rgl"];
+		  if (typeof global !== "undefined")
+        for (attrname in global)
+          this[attrname] = global[attrname];
+      window[control.prefix + "rgl"] = this;
+		};
+
+		this.Player = function(el, control) {
+		  var
+		    self = this,
+		    components = [].concat(control.components),
+
+		    Tick = function() { /* "this" will be a timer */
+		      var i,
+		          nominal = this.value,
+		          slider = this.Slider,
+		      	  labels = this.outputLabels,
+		          output = this.Output,
+		          step;
+		      if (typeof slider !== "undefined" && nominal != slider.value)
+		        slider.value = nominal;
+		      if (typeof output !== "undefined") {
+		        step = Math.round((nominal - output.sliderMin)/output.sliderStep);
+		        if (labels !== null) {
+		          output.innerHTML = labels[step];
+		        } else {
+		          step = step*output.sliderStep + output.sliderMin;
+		          output.innerHTML = step.toPrecision(output.outputPrecision);
+		        }
+		      }
+		      for (i=0; i < this.actions.length; i++) {
+		        this.actions[i].value = nominal;
+		      }
+		      self.applyControls(el, this.actions, false);
+		      self.drawScene();
+		    },
+
+        OnSliderInput = function() { /* "this" will be the slider */
+          this.rgltimer.value = Number(this.value);
+		      this.rgltimer.Tick();
+        },
+
+		    addSlider = function(min, max, step, value) {
+		      var slider = document.createElement("input");
+		      slider.type = "range";
+		      slider.min = min;
+		      slider.max = max;
+		      slider.step = step;
+		      slider.value = value;
+		      slider.oninput = OnSliderInput;
+		      slider.sliderActions = control.actions;
+		      slider.sliderScene = this;
+		      slider.className = "rgl-slider";
+		      slider.id = el.id + "-slider";
+		      el.rgltimer.Slider = slider;
+		      slider.rgltimer = el.rgltimer;
+		      el.appendChild(slider);
+		    },
+
+		    addLabel = function(labels, min, step, precision) {
+		      var output = document.createElement("output");
+		      output.sliderMin = min;
+		      output.sliderStep = step;
+		      output.outputPrecision = precision;
+		      output.className = "rgl-label";
+		      output.id = el.id + "-label";
+		      el.rgltimer.Output = output;
+		      el.rgltimer.outputLabels = labels;
+		      el.appendChild(output);
+		    },
+
+		    addButton = function(label) {
+		      var button = document.createElement("input"),
+		      		onclicks = {Reverse: function() { this.rgltimer.reverse();},
+	 	               Play: function() { this.rgltimer.play();
+	 	                                  this.value = this.rgltimer.enabled ? "Pause" : "Play"; },
+		               Slower: function() { this.rgltimer.slower(); },
+		               Faster: function() { this.rgltimer.faster(); },
+		               Reset: function() { this.rgltimer.reset(); }};
+		      button.rgltimer = el.rgltimer;
+		      button.type = "button";
+		      button.value = label;
+		      if (label === "Play")
+		        button.rgltimer.PlayButton = button;
+		      button.onclick = onclicks[label];
+		      button.className = "rgl-button";
+		      button.id = el.id + "-" + label;
+          el.appendChild(button);
+		    };
+
+        if (typeof control.reinit !== "null") {
+          control.actions.reinit = control.reinit;
+        }
+		    el.rgltimer = new rgltimerClass(Tick, control.start, control.interval, control.stop, control.value, control.rate, control.loop, control.actions);
+        for (var i=0; i < components.length; i++) {
+          switch(components[i]) {
+            case "Slider": addSlider(control.start, control.stop,
+                                   control.step, control.value);
+              break;
+            case "Label": addLabel(control.labels, control.start,
+                                   control.step, control.precision);
+              break;
+            default:
+              addButton(components[i]);
+          }
+        }
+        el.rgltimer.Tick();
+		};
+
+		this.applyControls = function(el, x, draw) {
+		  var self = this, reinit = x.reinit, i, obj, control, type;
+		  for (i = 0; i < x.length; i++) {
+		    control = x[i];
+		    type = control.type;
+		    self[type](el, control);
+		  };
+		  if (typeof reinit !== "undefined" && reinit !== null) {
+		    reinit = [].concat(reinit);
+		    for (i = 0; i < reinit.length; i++)
+		      self.getObj(reinit[i]).initialized = false;
+		  }
+		  if (typeof draw === "undefined" || draw)
+		    self.drawScene();
+		};
+
+		this.sceneChangeHandler = function(message) {
+		  var self = document.getElementById(message.elementId).rglinstance,
+		      objs = message.objects, mat = message.material,
+		      root = message.rootSubscene,
+		      initSubs = message.initSubscenes,
+		      redraw = message.redrawScene,
+		      skipRedraw = message.skipRedraw,
+		      deletes, subs, allsubs = [], obj, i,j;
+		  if (typeof message.delete !== "undefined") {
+		    deletes = [].concat(message.delete);
+		    if (typeof message.delfromSubscenes !== "undefined")
+		      subs = [].concat(message.delfromSubscenes);
+		    else
+		      subs = [];
+		    for (i = 0; i < deletes.length; i++) {
+		      for (j = 0; j < subs.length; j++) {
+		        self.delFromSubscene(deletes[i], subs[j]);
+		      }
+		      delete self.scene.objects[deletes[i]];
+		    }
+		  }
+		  if (typeof objs !== "undefined") {
+		    Object.keys(objs).forEach(function(key){
+		      key = parseInt(key, 10);
+		      self.scene.objects[key] = objs[key];
+		      self.initObj(key);
+		      var obj = self.getObj(key),
+		          subs = [].concat(obj.inSubscenes), k;
+		      allsubs = allsubs.concat(subs);
+		      for (k = 0; k < subs.length; k++)
+		        self.addToSubscene(key, subs[k]);
+		    });
+		  }
+		  if (typeof mat !== "undefined") {
+		    self.scene.material = mat;
+		  }
+		  if (typeof root !== "undefined") {
+		    self.scene.rootSubscene = root;
+		  }
+		  if (typeof initSubs !== "undefined")
+		    allsubs = allsubs.concat(initSubs);
+		  allsubs = self.unique(allsubs);
+		  for (i = 0; i < allsubs.length; i++) {
+		    self.initSubscene(allsubs[i]);
+		  }
+		  if (typeof skipRedraw !== "undefined") {
+		    root = self.getObj(self.scene.rootSubscene);
+		    root.par3d.skipRedraw = skipRedraw;
+		  }
+		  if (redraw)
+	      self.drawScene();
+		};
+}).call(rglwidgetClass.prototype);
+
+rgltimerClass = function(Tick, startTime, interval, stopTime, value, rate, loop, actions) {
+  this.enabled = false;
+  this.timerId = 0;
+  this.startTime = startTime;         /* nominal start time in seconds */
+  this.value = value;                 /* current nominal time */
+  this.interval = interval;           /* seconds between updates */
+  this.stopTime = stopTime;           /* nominal stop time */
+  this.rate = rate;                   /* nominal units per second */
+  this.loop = loop;                   /* "none", "cycle", or "oscillate" */
+  this.realStart = undefined;         /* real world start time */
+  this.multiplier = 1;                /* multiplier for fast-forward
+                                         or reverse */
+  this.actions = actions;
+  this.Tick = Tick;
+};
+
+(function() {
+
+  this.play = function() {
+    if (this.enabled) {
+      this.enabled = false;
+      window.clearInterval(this.timerId);
+      this.timerId = 0;
+      return;
+    }
+    var tick = function(self) {
+      var now = new Date();
+      self.value = self.multiplier*self.rate*(now - self.realStart)/1000 + self.startTime;
+      if (self.value > self.stopTime || self.value < self.startTime) {
+        if (!self.loop) {
+          self.reset();
+        } else {
+          var cycle = self.stopTime - self.startTime,
+              newval = (self.value - self.startTime) % cycle + self.startTime;
+          if (newval < self.startTime) {
+            newval += cycle;
+          }
+          self.realStart += (self.value - newval)*1000/self.multiplier/self.rate;
+          self.value = newval;
+        }
+      }
+      if (typeof self.Tick !== "undefined") {
+        self.Tick(self.value);
+      }
+
+    };
+    this.realStart = new Date() - 1000*(this.value - this.startTime)/this.rate/this.multiplier;
+    this.timerId = window.setInterval(tick, 1000*this.interval, this);
+    this.enabled = true;
+  };
+
+  this.reset = function() {
+    this.value = this.startTime;
+    this.newmultiplier(1);
+    if (typeof this.Tick !== "undefined") {
+        this.Tick(this.value);
+    }
+    if (this.enabled)
+      this.play();  /* really pause... */
+    if (typeof this.PlayButton !== "undefined")
+      this.PlayButton.value = "Play";
+  };
+
+  this.faster = function() {
+    this.newmultiplier(Math.SQRT2*this.multiplier);
+  };
+
+  this.slower = function() {
+    this.newmultiplier(this.multiplier/Math.SQRT2);
+  };
+
+  this.reverse = function() {
+    this.newmultiplier(-this.multiplier);
+  };
+
+  this.newmultiplier = function(newmult) {
+    if (newmult != this.multiplier) {
+      this.realStart += 1000*(this.value - this.startTime)/this.rate*(1/this.multiplier - 1/newmult);
+      this.multiplier = newmult;
+    }
+  };
+
+}).call(rgltimerClass.prototype);</script>
+
+<div id="div" class="rglWebGL"></div>
+<script type="text/javascript">
+	var div = document.getElementById("div"),
+      rgl = new rglwidgetClass();
+  div.width = 700;
+  div.height = 700;
+  rgl.initialize(div,
+                         {"material":{"color":"#000000","alpha":1,"lit":true,"ambient":"#000000","specular":"#FFFFFF","emission":"#000000","shininess":50,"smooth":true,"front":"filled","back":"filled","size":3,"lwd":1,"fog":false,"point_antialias":false,"line_antialias":false,"texture":null,"textype":"rgb","texmipmap":false,"texminfilter":"linear","texmagfilter":"linear","texenvmap":false,"depth_mask":true,"depth_test":"less"},"rootSubscene":1,"objects":{"7":{"id":7,"type":"spheres","material":{},"vertices":[[0.4573322,-0.1676855,-0.3625693],[-0.8639004,0.02351634,-0.006970298],[-0.2631679,-1.018186,-0.4314958],[0.559663,0.08916362,0.02038302],[0.4080024,0.01949305,-0.1997484],[0.5038732,0.1447059,0.02155305],[0.2236056,0.1727908,-0.2382517],[0.2273374,0.4261958,0.01696173],[0.1742765,0.4368924,0.01147757],[0.4006179,0.005774329,-0.2599565],[0.3849656,0.2861392,0.09612206],[0.510323,0.1338998,0.04106246],[0.3209514,0.3107501,0.04360943],[0.2621264,0.4120233,0.03071748],[0.1923563,0.4783425,0.02355313],[0.2034494,0.2071691,-0.2690403],[0.3912128,0.04126377,-0.1733079],[0.364912,0.2659647,0.004871521],[0.4296821,0.06089929,-0.1163613],[0.2497936,0.4019147,0.06588691],[0.1723821,0.4852541,0.03948844],[0.2100311,0.4695904,0.04949998],[0.3209514,0.3107501,0.04360943],[0.4933242,0.1704947,0.04939098],[0.4295559,0.2667458,0.1454333],[0.2707058,0.1373624,-0.2693875],[0.4004817,0.2873544,0.1185673],[0.1732445,0.2160151,-0.259213],[0.4004817,0.2873544,0.1185673],[0.2040101,0.1903194,-0.2786494],[0.3849656,0.2861392,0.09612206],[0.2794044,0.1766481,-0.1725126],[0.2236056,0.1727908,-0.2382517],[0.4941939,-0.05930287,-0.1994012],[0.21606,0.3374241,-0.05353544],[0.2452708,0.1334742,-0.2686855],[0.4883255,0.1737478,0.1273537],[0.3539754,0.08166382,-0.2029991],[0.2933401,0.3161487,0.01291168],[0.4664351,0.1807658,0.02760552],[0.2844102,0.35791,0.07675],[0.2100311,0.4695904,0.04949998],[0.3799521,0.08990767,-0.1462183],[0.2535817,0.1131805,-0.3175876],[0.3481464,0.0571426,-0.2435106],[0.4933242,0.1704947,0.04939098],[0.1081159,0.5266471,0.04233524],[0.5365384,0.09674436,0.02136401],[0.271066,0.385929,0.05266751],[0.3767335,0.0625668,-0.2208008],[0.2655627,0.3314803,-0.05088456],[0.3951578,0.2020252,-0.01451039],[0.2933401,0.3161487,0.01291168],[0.1669515,0.2373588,-0.2836413],[0.1755604,0.4253133,0.008782498],[0.1742765,0.4368924,0.01147757],[0.3799521,0.08990767,-0.1462183],[0.1618897,0.4856461,0.02925557],[0.1264208,0.5081734,0.03638561],[0.186358,0.4717295,0.04974542],[0.3561324,0.3308035,0.1365481],[0.21606,0.3374241,-0.05353544],[0.4883255,0.1737478,0.1273537],[0.3367115,0.3210296,0.003214547],[0.559663,0.08916362,0.02038302],[0.4034657,-0.05034714,-0.3358079],[0.2978225,0.3388268,0.04814027],[0.258862,0.4184958,0.06207682],[0.4883255,0.1737478,0.1273537],[0.09565248,0.3151892,-0.2608146],[0.2584931,0.1224818,-0.2855712],[0.1823692,0.1899291,-0.3200028],[0.3100724,0.3373742,-0.003188394],[0.4583375,0.24228,0.1549138],[0.4883255,0.1737478,0.1273537],[0.2789845,0.3765756,0.01309307],[0.4296821,0.06089929,-0.1163613],[0.3849656,0.2861392,0.09612206],[0.1081159,0.5266471,0.04233524],[0.3912128,0.04126377,-0.1733079],[0.3439583,0.3409199,0.04746027],[0.3343042,0.3446854,0.1073287],[0.2801918,0.3746235,0.0599322],[0.2236056,0.1727908,-0.2382517],[0.3873393,0.2536228,0.03424226],[0.3665218,0.350749,0.1005991],[0.4174269,0.1746949,-0.02913535],[0.4664351,0.1807658,0.02760552],[0.1618897,0.4856461,0.02925557],[0.4661462,0.03459046,-0.1079411],[0.364912,0.2659647,0.004871521],[0.4512714,-0.05878397,-0.2872462],[0.2867809,0.1126318,-0.2864937],[0.1923563,0.4783425,0.02355313],[0.2655627,0.3314803,-0.05088456],[0.4813497,0.2078194,0.08910351],[0.4496296,0.2174865,0.08052872],[0.2850967,0.1086042,-0.2578757],[0.2655627,0.3314803,-0.05088456],[0.1679363,0.2359919,-0.2437438],[0.3209514,0.3107501,0.04360943],[0.4469247,0.2164154,0.07577115],[-0.7976418,-0.002274917,0.05791876],[-0.7612025,0.01532835,0.1095692],[-0.7836958,0.01402927,0.1203951],[-0.7953429,0.0002987029,0.07156208],[-0.7948036,-0.05407339,-0.01373993],[-0.7917007,-0.0325569,0.0479864],[-0.8187949,-0.1076213,-0.1523388],[-0.8166214,-0.08999116,-0.1245873],[-0.7673627,0.0263924,0.1316795],[-0.7796872,-0.05977128,-0.01333987],[-0.7856008,0.01573087,0.1051414],[-0.7854059,-0.0614028,-0.06128652],[-0.7906319,0.01096688,0.09824499],[-0.7613454,0.02212992,0.09746787],[-0.7585528,0.02969724,0.1372946],[-0.8055754,-0.08851614,-0.1326099],[-0.7576296,0.02526299,0.1171008],[-0.7906319,0.01096688,0.09824499],[-0.7885281,-0.04455325,-0.02399225],[-0.7907097,-0.05605492,-0.03757284],[-0.7602454,0.02410563,0.09324899],[-0.8055754,-0.08851614,-0.1326099],[-0.7859714,-0.07232322,-0.05688593],[-0.7464683,0.04107222,0.1440884],[-0.7892287,0.0163704,0.09598283],[-0.7602454,0.02410563,0.09324899],[-0.8060212,-0.06089747,-0.05882627],[-0.8076486,-0.05714282,-0.0314292],[-0.7676019,0.009357777,0.06344656],[-0.8165347,-0.1054114,-0.1648798],[-0.7978279,0.001820749,0.05746331],[-0.8162469,-0.07462734,-0.09363078],[-0.7429458,0.04302856,0.1508096],[-0.763088,-0.02616614,0.06673609],[-0.8091822,-0.1021577,-0.1527321],[-0.8133274,-0.09977933,-0.1506801],[-0.7839681,0.01524101,0.07342067],[-0.8214277,-0.1020384,-0.1515011],[-0.7792529,0.02144134,0.1162581],[-0.7894329,0.01152397,0.06072496],[-0.7689033,0.01115046,0.0824734],[-0.8071827,-0.09201571,-0.1276609],[-0.7991292,-0.09455919,-0.09485935],[-0.8133457,-0.08486333,-0.107035],[-0.8180829,-0.08973417,-0.1245249],[-0.7862967,-0.02237125,0.07009532],[-0.7710922,0.004299668,0.04428605],[-0.7494914,0.03606097,0.1454897],[-0.8076486,-0.05714282,-0.0314292],[-0.7900767,0.007379053,0.04834481],[-0.8055754,-0.08851614,-0.1326099],[-0.7925615,-0.04022073,0.02350803],[-0.750902,0.0342747,0.1298603],[-0.8066562,-0.05196754,-0.02061356],[-0.8049715,-0.07582971,-0.08317737],[-0.8083026,-0.04994748,-0.01911803],[-0.8125815,-0.1063307,-0.150358],[-0.7781341,0.0228158,0.09144865],[-0.7613454,0.02212992,0.09746787],[-0.8155406,-0.1003144,-0.1524355],[-0.7725787,0.02038269,0.1049844],[-0.7980792,-0.06991357,-0.07722464],[-0.7892287,0.0163704,0.09598283],[-0.8161826,-0.08045033,-0.1094314],[-0.7578414,0.01670883,0.09545796],[-0.7882031,0.01337926,0.06512562],[-0.7684589,0.002076254,0.05757941],[-0.7394592,0.04511112,0.1612745],[-0.78416,0.01471644,0.07690578],[-0.7731504,-0.04571079,-0.03511299],[-0.8044772,-0.07507814,-0.0988102],[-0.748696,0.03796159,0.1259274],[-0.7859714,-0.07232322,-0.05688593],[-0.75626,0.0280608,0.1135769],[-0.753669,0.0279072,0.1315897],[-0.8202876,-0.107701,-0.1671763],[-0.7585528,0.02969724,0.1372946],[-0.7862967,-0.02237125,0.07009532],[-0.771387,0.02370574,0.1197871],[-0.8127117,-0.07629807,-0.1052631],[-0.7993098,-0.06759042,-0.05171343],[-0.7792529,0.02144134,0.1162581],[-0.7782703,0.01688558,0.08560254],[-0.7976418,-0.002274917,0.05791876],[-0.8133457,-0.08486333,-0.107035],[-0.8000441,-0.05876904,-0.01166895],[-0.8133457,-0.08486333,-0.107035],[-0.797002,-0.03065522,0.03088561],[-0.7585528,0.02969724,0.1372946],[-0.7700964,0.01566211,0.09047411],[-0.7917007,-0.0325569,0.0479864],[-0.7856008,0.01573087,0.1051414],[-0.7845646,0.01428321,0.08424328],[-0.8127117,-0.07629807,-0.1052631],[-0.7781341,0.0228158,0.09144865],[-0.8071827,-0.09201571,-0.1276609],[-0.8203881,-0.09046694,-0.12833],[-0.8127117,-0.07629807,-0.1052631],[-0.789063,-0.08055706,-0.06101628],[0.5327938,-0.1678932,0.02008015],[0.561757,-0.1132882,0.07609205],[0.6093137,-0.1311221,0.1479947],[0.4993096,-0.1686643,-0.05483348],[0.5332533,-0.1701878,-0.07584137],[0.551093,-0.1661427,0.08843535],[0.391653,-0.2768752,0.1032226],[0.528168,-0.123543,0.07206859],[0.4827867,-0.2000029,0.06643252],[0.5606178,-0.117907,0.05089284],[0.5406891,-0.1210723,-0.03876456],[0.352846,-0.2782716,0.1526844],[0.5202095,-0.1582833,0.02650207],[0.4934769,-0.1569126,0.0162024],[0.4094092,-0.2329491,0.03225077],[0.4589114,-0.2193512,0.07695318],[0.5615696,-0.09399361,0.08940548],[0.5193033,-0.1770309,-0.05152392],[0.5233944,-0.1640988,0.004029818],[0.4709685,-0.2327866,0.05878242],[0.5134674,-0.1727748,0.02923109],[0.4765002,-0.1917633,0.08693311],[0.4584523,-0.2102014,0.03095079],[0.4749599,-0.1884851,-0.08054079],[0.3670606,-0.2819874,0.1189935],[0.5183753,-0.1905636,0.02410005],[0.4170511,-0.2359202,0.1176452],[0.5480055,-0.1737053,-0.1205998],[0.4120816,-0.2573451,-0.0286608],[0.5696948,-0.1640011,-0.01639024],[0.420046,-0.2657009,0.01758407],[0.4680879,-0.2326835,0.07092249],[0.5432808,-0.1710361,-0.01218564],[0.4151516,-0.2568729,0.0494469],[0.3718652,-0.2691674,0.108283],[0.3242916,-0.3409887,0.1793282],[0.4319856,-0.1945614,0.02357982],[0.540979,-0.1582971,0.05242341],[0.3584429,-0.2863542,0.06186442],[0.5366926,-0.1618141,-0.03443122],[0.5002855,-0.2003052,-0.01109231],[0.5503334,-0.1566222,0.07214765],[0.4726457,-0.2112439,0.05919639],[0.4269805,-0.2126967,0.03257704],[0.4105489,-0.2457181,-0.08072367],[0.5593412,-0.1286226,0.1509461],[0.438311,-0.2315007,0.09985271],[0.5185121,-0.2006744,-0.08768692],[0.4725593,-0.2214837,0.05561259],[0.4823299,-0.2289518,0.110636],[0.5096468,-0.1873181,0.0007830596],[0.5350326,-0.1738864,0.04274189],[0.4111951,-0.2692621,-0.03672916],[0.4841601,-0.201509,0.08359783],[0.4783015,-0.1724021,0.05902601],[0.4914776,-0.1845207,-0.007688132],[0.2105687,-0.4169355,0.1061782],[0.4320858,-0.2552535,-0.08704392],[0.4809637,-0.2280007,0.09954625],[0.3498655,-0.3024325,-0.04968746],[0.4562319,-0.1634925,0.04740498],[0.4717605,-0.2114021,0.05553838],[0.5496169,-0.1317066,0.02021415],[0.4924919,-0.1875125,0.02373865],[0.5051897,-0.196393,0.01723124],[0.5087475,-0.1994274,0.07961859],[0.5277034,-0.1745541,0.02975225],[0.3868771,-0.3063983,0.1380021],[0.5399549,-0.1635401,-0.07508189],[0.4566305,-0.2311232,-0.0185124],[0.4919756,-0.1801901,0.05108545],[0.5397854,-0.1657128,-0.06073372],[0.4639231,-0.2217017,-0.03498215],[0.472688,-0.24545,0.07117309],[0.3848423,-0.2738508,0.08135794],[0.4300178,-0.2002743,0.08085007],[0.3494772,-0.2202357,0.03509948],[0.5264508,-0.1677527,-0.04634868],[0.4795253,-0.2205794,0.003157701],[0.5479103,-0.1478376,0.1005749],[0.5217881,-0.1791752,0.08893404],[0.5361598,-0.1546376,-0.05171851],[0.4351231,-0.2474325,0.08216614],[0.3898809,-0.2737164,0.2050969],[0.4212921,-0.2689292,0.04156753],[0.3150896,-0.3095653,0.1018454],[0.3198395,-0.3116777,0.20532],[0.5486815,-0.1651296,0.06632817],[0.4026617,-0.2846251,0.0368157],[0.4410324,-0.2450651,-0.0870434],[0.5067906,-0.1845122,0.1021125],[0.3846204,-0.2813095,0.004101652],[0.410543,-0.250042,0.1171432],[0.5945642,-0.1263053,-0.004810435],[0.20542,-0.3756248,0.2032825],[0.532836,-0.1829529,-0.003347575],[0.4858787,-0.2123687,0.08156591],[0.4703839,-0.2029521,0.09830162],[0.5553126,-0.1569811,0.06566752]],"colors":[[1,0,0,1],[1,1,0,1],[0,1,0,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,1,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[0,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1],[1,0,1,1]],"radii":[[0.01714842]],"centers":[[0.4573322,-0.1676855,-0.3625693],[-0.8639004,0.02351634,-0.006970298],[-0.2631679,-1.018186,-0.4314958],[0.559663,0.08916362,0.02038302],[0.4080024,0.01949305,-0.1997484],[0.5038732,0.1447059,0.02155305],[0.2236056,0.1727908,-0.2382517],[0.2273374,0.4261958,0.01696173],[0.1742765,0.4368924,0.01147757],[0.4006179,0.005774329,-0.2599565],[0.3849656,0.2861392,0.09612206],[0.510323,0.1338998,0.04106246],[0.3209514,0.3107501,0.04360943],[0.2621264,0.4120233,0.03071748],[0.1923563,0.4783425,0.02355313],[0.2034494,0.2071691,-0.2690403],[0.3912128,0.04126377,-0.1733079],[0.364912,0.2659647,0.004871521],[0.4296821,0.06089929,-0.1163613],[0.2497936,0.4019147,0.06588691],[0.1723821,0.4852541,0.03948844],[0.2100311,0.4695904,0.04949998],[0.3209514,0.3107501,0.04360943],[0.4933242,0.1704947,0.04939098],[0.4295559,0.2667458,0.1454333],[0.2707058,0.1373624,-0.2693875],[0.4004817,0.2873544,0.1185673],[0.1732445,0.2160151,-0.259213],[0.4004817,0.2873544,0.1185673],[0.2040101,0.1903194,-0.2786494],[0.3849656,0.2861392,0.09612206],[0.2794044,0.1766481,-0.1725126],[0.2236056,0.1727908,-0.2382517],[0.4941939,-0.05930287,-0.1994012],[0.21606,0.3374241,-0.05353544],[0.2452708,0.1334742,-0.2686855],[0.4883255,0.1737478,0.1273537],[0.3539754,0.08166382,-0.2029991],[0.2933401,0.3161487,0.01291168],[0.4664351,0.1807658,0.02760552],[0.2844102,0.35791,0.07675],[0.2100311,0.4695904,0.04949998],[0.3799521,0.08990767,-0.1462183],[0.2535817,0.1131805,-0.3175876],[0.3481464,0.0571426,-0.2435106],[0.4933242,0.1704947,0.04939098],[0.1081159,0.5266471,0.04233524],[0.5365384,0.09674436,0.02136401],[0.271066,0.385929,0.05266751],[0.3767335,0.0625668,-0.2208008],[0.2655627,0.3314803,-0.05088456],[0.3951578,0.2020252,-0.01451039],[0.2933401,0.3161487,0.01291168],[0.1669515,0.2373588,-0.2836413],[0.1755604,0.4253133,0.008782498],[0.1742765,0.4368924,0.01147757],[0.3799521,0.08990767,-0.1462183],[0.1618897,0.4856461,0.02925557],[0.1264208,0.5081734,0.03638561],[0.186358,0.4717295,0.04974542],[0.3561324,0.3308035,0.1365481],[0.21606,0.3374241,-0.05353544],[0.4883255,0.1737478,0.1273537],[0.3367115,0.3210296,0.003214547],[0.559663,0.08916362,0.02038302],[0.4034657,-0.05034714,-0.3358079],[0.2978225,0.3388268,0.04814027],[0.258862,0.4184958,0.06207682],[0.4883255,0.1737478,0.1273537],[0.09565248,0.3151892,-0.2608146],[0.2584931,0.1224818,-0.2855712],[0.1823692,0.1899291,-0.3200028],[0.3100724,0.3373742,-0.003188394],[0.4583375,0.24228,0.1549138],[0.4883255,0.1737478,0.1273537],[0.2789845,0.3765756,0.01309307],[0.4296821,0.06089929,-0.1163613],[0.3849656,0.2861392,0.09612206],[0.1081159,0.5266471,0.04233524],[0.3912128,0.04126377,-0.1733079],[0.3439583,0.3409199,0.04746027],[0.3343042,0.3446854,0.1073287],[0.2801918,0.3746235,0.0599322],[0.2236056,0.1727908,-0.2382517],[0.3873393,0.2536228,0.03424226],[0.3665218,0.350749,0.1005991],[0.4174269,0.1746949,-0.02913535],[0.4664351,0.1807658,0.02760552],[0.1618897,0.4856461,0.02925557],[0.4661462,0.03459046,-0.1079411],[0.364912,0.2659647,0.004871521],[0.4512714,-0.05878397,-0.2872462],[0.2867809,0.1126318,-0.2864937],[0.1923563,0.4783425,0.02355313],[0.2655627,0.3314803,-0.05088456],[0.4813497,0.2078194,0.08910351],[0.4496296,0.2174865,0.08052872],[0.2850967,0.1086042,-0.2578757],[0.2655627,0.3314803,-0.05088456],[0.1679363,0.2359919,-0.2437438],[0.3209514,0.3107501,0.04360943],[0.4469247,0.2164154,0.07577115],[-0.7976418,-0.002274917,0.05791876],[-0.7612025,0.01532835,0.1095692],[-0.7836958,0.01402927,0.1203951],[-0.7953429,0.0002987029,0.07156208],[-0.7948036,-0.05407339,-0.01373993],[-0.7917007,-0.0325569,0.0479864],[-0.8187949,-0.1076213,-0.1523388],[-0.8166214,-0.08999116,-0.1245873],[-0.7673627,0.0263924,0.1316795],[-0.7796872,-0.05977128,-0.01333987],[-0.7856008,0.01573087,0.1051414],[-0.7854059,-0.0614028,-0.06128652],[-0.7906319,0.01096688,0.09824499],[-0.7613454,0.02212992,0.09746787],[-0.7585528,0.02969724,0.1372946],[-0.8055754,-0.08851614,-0.1326099],[-0.7576296,0.02526299,0.1171008],[-0.7906319,0.01096688,0.09824499],[-0.7885281,-0.04455325,-0.02399225],[-0.7907097,-0.05605492,-0.03757284],[-0.7602454,0.02410563,0.09324899],[-0.8055754,-0.08851614,-0.1326099],[-0.7859714,-0.07232322,-0.05688593],[-0.7464683,0.04107222,0.1440884],[-0.7892287,0.0163704,0.09598283],[-0.7602454,0.02410563,0.09324899],[-0.8060212,-0.06089747,-0.05882627],[-0.8076486,-0.05714282,-0.0314292],[-0.7676019,0.009357777,0.06344656],[-0.8165347,-0.1054114,-0.1648798],[-0.7978279,0.001820749,0.05746331],[-0.8162469,-0.07462734,-0.09363078],[-0.7429458,0.04302856,0.1508096],[-0.763088,-0.02616614,0.06673609],[-0.8091822,-0.1021577,-0.1527321],[-0.8133274,-0.09977933,-0.1506801],[-0.7839681,0.01524101,0.07342067],[-0.8214277,-0.1020384,-0.1515011],[-0.7792529,0.02144134,0.1162581],[-0.7894329,0.01152397,0.06072496],[-0.7689033,0.01115046,0.0824734],[-0.8071827,-0.09201571,-0.1276609],[-0.7991292,-0.09455919,-0.09485935],[-0.8133457,-0.08486333,-0.107035],[-0.8180829,-0.08973417,-0.1245249],[-0.7862967,-0.02237125,0.07009532],[-0.7710922,0.004299668,0.04428605],[-0.7494914,0.03606097,0.1454897],[-0.8076486,-0.05714282,-0.0314292],[-0.7900767,0.007379053,0.04834481],[-0.8055754,-0.08851614,-0.1326099],[-0.7925615,-0.04022073,0.02350803],[-0.750902,0.0342747,0.1298603],[-0.8066562,-0.05196754,-0.02061356],[-0.8049715,-0.07582971,-0.08317737],[-0.8083026,-0.04994748,-0.01911803],[-0.8125815,-0.1063307,-0.150358],[-0.7781341,0.0228158,0.09144865],[-0.7613454,0.02212992,0.09746787],[-0.8155406,-0.1003144,-0.1524355],[-0.7725787,0.02038269,0.1049844],[-0.7980792,-0.06991357,-0.07722464],[-0.7892287,0.0163704,0.09598283],[-0.8161826,-0.08045033,-0.1094314],[-0.7578414,0.01670883,0.09545796],[-0.7882031,0.01337926,0.06512562],[-0.7684589,0.002076254,0.05757941],[-0.7394592,0.04511112,0.1612745],[-0.78416,0.01471644,0.07690578],[-0.7731504,-0.04571079,-0.03511299],[-0.8044772,-0.07507814,-0.0988102],[-0.748696,0.03796159,0.1259274],[-0.7859714,-0.07232322,-0.05688593],[-0.75626,0.0280608,0.1135769],[-0.753669,0.0279072,0.1315897],[-0.8202876,-0.107701,-0.1671763],[-0.7585528,0.02969724,0.1372946],[-0.7862967,-0.02237125,0.07009532],[-0.771387,0.02370574,0.1197871],[-0.8127117,-0.07629807,-0.1052631],[-0.7993098,-0.06759042,-0.05171343],[-0.7792529,0.02144134,0.1162581],[-0.7782703,0.01688558,0.08560254],[-0.7976418,-0.002274917,0.05791876],[-0.8133457,-0.08486333,-0.107035],[-0.8000441,-0.05876904,-0.01166895],[-0.8133457,-0.08486333,-0.107035],[-0.797002,-0.03065522,0.03088561],[-0.7585528,0.02969724,0.1372946],[-0.7700964,0.01566211,0.09047411],[-0.7917007,-0.0325569,0.0479864],[-0.7856008,0.01573087,0.1051414],[-0.7845646,0.01428321,0.08424328],[-0.8127117,-0.07629807,-0.1052631],[-0.7781341,0.0228158,0.09144865],[-0.8071827,-0.09201571,-0.1276609],[-0.8203881,-0.09046694,-0.12833],[-0.8127117,-0.07629807,-0.1052631],[-0.789063,-0.08055706,-0.06101628],[0.5327938,-0.1678932,0.02008015],[0.561757,-0.1132882,0.07609205],[0.6093137,-0.1311221,0.1479947],[0.4993096,-0.1686643,-0.05483348],[0.5332533,-0.1701878,-0.07584137],[0.551093,-0.1661427,0.08843535],[0.391653,-0.2768752,0.1032226],[0.528168,-0.123543,0.07206859],[0.4827867,-0.2000029,0.06643252],[0.5606178,-0.117907,0.05089284],[0.5406891,-0.1210723,-0.03876456],[0.352846,-0.2782716,0.1526844],[0.5202095,-0.1582833,0.02650207],[0.4934769,-0.1569126,0.0162024],[0.4094092,-0.2329491,0.03225077],[0.4589114,-0.2193512,0.07695318],[0.5615696,-0.09399361,0.08940548],[0.5193033,-0.1770309,-0.05152392],[0.5233944,-0.1640988,0.004029818],[0.4709685,-0.2327866,0.05878242],[0.5134674,-0.1727748,0.02923109],[0.4765002,-0.1917633,0.08693311],[0.4584523,-0.2102014,0.03095079],[0.4749599,-0.1884851,-0.08054079],[0.3670606,-0.2819874,0.1189935],[0.5183753,-0.1905636,0.02410005],[0.4170511,-0.2359202,0.1176452],[0.5480055,-0.1737053,-0.1205998],[0.4120816,-0.2573451,-0.0286608],[0.5696948,-0.1640011,-0.01639024],[0.420046,-0.2657009,0.01758407],[0.4680879,-0.2326835,0.07092249],[0.5432808,-0.1710361,-0.01218564],[0.4151516,-0.2568729,0.0494469],[0.3718652,-0.2691674,0.108283],[0.3242916,-0.3409887,0.1793282],[0.4319856,-0.1945614,0.02357982],[0.540979,-0.1582971,0.05242341],[0.3584429,-0.2863542,0.06186442],[0.5366926,-0.1618141,-0.03443122],[0.5002855,-0.2003052,-0.01109231],[0.5503334,-0.1566222,0.07214765],[0.4726457,-0.2112439,0.05919639],[0.4269805,-0.2126967,0.03257704],[0.4105489,-0.2457181,-0.08072367],[0.5593412,-0.1286226,0.1509461],[0.438311,-0.2315007,0.09985271],[0.5185121,-0.2006744,-0.08768692],[0.4725593,-0.2214837,0.05561259],[0.4823299,-0.2289518,0.110636],[0.5096468,-0.1873181,0.0007830596],[0.5350326,-0.1738864,0.04274189],[0.4111951,-0.2692621,-0.03672916],[0.4841601,-0.201509,0.08359783],[0.4783015,-0.1724021,0.05902601],[0.4914776,-0.1845207,-0.007688132],[0.2105687,-0.4169355,0.1061782],[0.4320858,-0.2552535,-0.08704392],[0.4809637,-0.2280007,0.09954625],[0.3498655,-0.3024325,-0.04968746],[0.4562319,-0.1634925,0.04740498],[0.4717605,-0.2114021,0.05553838],[0.5496169,-0.1317066,0.02021415],[0.4924919,-0.1875125,0.02373865],[0.5051897,-0.196393,0.01723124],[0.5087475,-0.1994274,0.07961859],[0.5277034,-0.1745541,0.02975225],[0.3868771,-0.3063983,0.1380021],[0.5399549,-0.1635401,-0.07508189],[0.4566305,-0.2311232,-0.0185124],[0.4919756,-0.1801901,0.05108545],[0.5397854,-0.1657128,-0.06073372],[0.4639231,-0.2217017,-0.03498215],[0.472688,-0.24545,0.07117309],[0.3848423,-0.2738508,0.08135794],[0.4300178,-0.2002743,0.08085007],[0.3494772,-0.2202357,0.03509948],[0.5264508,-0.1677527,-0.04634868],[0.4795253,-0.2205794,0.003157701],[0.5479103,-0.1478376,0.1005749],[0.5217881,-0.1791752,0.08893404],[0.5361598,-0.1546376,-0.05171851],[0.4351231,-0.2474325,0.08216614],[0.3898809,-0.2737164,0.2050969],[0.4212921,-0.2689292,0.04156753],[0.3150896,-0.3095653,0.1018454],[0.3198395,-0.3116777,0.20532],[0.5486815,-0.1651296,0.06632817],[0.4026617,-0.2846251,0.0368157],[0.4410324,-0.2450651,-0.0870434],[0.5067906,-0.1845122,0.1021125],[0.3846204,-0.2813095,0.004101652],[0.410543,-0.250042,0.1171432],[0.5945642,-0.1263053,-0.004810435],[0.20542,-0.3756248,0.2032825],[0.532836,-0.1829529,-0.003347575],[0.4858787,-0.2123687,0.08156591],[0.4703839,-0.2029521,0.09830162],[0.5553126,-0.1569811,0.06566752]],"ignoreExtent":false,"flags":3},"9":{"id":9,"type":"text","material":{"lit":false},"vertices":[[-0.1272933,-1.307616,-0.5508054]],"colors":[[0,0,0,1]],"texts":[["x"]],"cex":[[1]],"adj":[[0.5,0.5]],"centers":[[-0.1272933,-1.307616,-0.5508054]],"family":[["sans"]],"font":[[1]],"ignoreExtent":true,"flags":40},"10":{"id":10,"type":"text","material":{"lit":false},"vertices":[[-1.139912,-0.2457696,-0.5508054]],"colors":[[0,0,0,1]],"texts":[["y"]],"cex":[[1]],"adj":[[0.5,0.5]],"centers":[[-1.139912,-0.2457696,-0.5508054]],"family":[["sans"]],"font":[[1]],"ignoreExtent":true,"flags":40},"11":{"id":11,"type":"text","material":{"lit":false},"vertices":[[-1.139912,-1.307616,-0.1130879]],"colors":[[0,0,0,1]],"texts":[["z"]],"cex":[[1]],"adj":[[0.5,0.5]],"centers":[[-1.139912,-1.307616,-0.1130879]],"family":[["sans"]],"font":[[1]],"ignoreExtent":true,"flags":40},"5":{"id":5,"type":"light","vertices":[[0,0,1]],"colors":[[1,1,1,1],[1,1,1,1],[1,1,1,1]],"viewpoint":true,"finite":false},"4":{"id":4,"type":"background","colors":[[0.2980392,0.2980392,0.2980392,1]],"centers":[[0,0,0]],"sphere":false,"fogtype":"none"},"6":{"id":6,"type":"background","colors":[[1,1,1,1]],"centers":[[0,0,0]],"sphere":false,"fogtype":"none"},"12":{"id":12,"type":"background","colors":[[1,1,1,1]],"centers":[[0,0,0]],"sphere":false,"fogtype":"none"},"8":{"id":8,"type":"bboxdeco","material":{"front":"lines","back":"lines"},"vertices":[[-0.5,null,null],[0,null,null],[0.5,null,null],[null,-1,null],[null,-0.5,null],[null,0,null],[null,0.5,null],[null,null,-0.4],[null,null,-0.3],[null,null,-0.2],[null,null,-0.1],[null,null,0],[null,null,0.1],[null,null,0.2]],"colors":[[0,0,0,1]],"draw_front":true,"newIds":[21,22,23,24,25,26,27]},"1":{"id":1,"type":"subscene","par3d":{"antialias":8,"FOV":30,"ignoreExtent":false,"listeners":1,"mouseMode":{"left":"trackball","right":"zoom","middle":"fov","wheel":"pull"},"observer":[0,0,5.596437],"modelMatrix":[[0.8730108,0,0,0.1111284],[0,0.2847446,1.89783,0.2846032],[0,-0.7823293,0.6907538,-5.710594],[0,0,0,1]],"projMatrix":[[3.732051,0,0,0],[0,3.732051,0,0],[0,0,-3.863703,-20.17451],[0,0,-1,0]],"skipRedraw":false,"userMatrix":[[1,0,0,0],[0,0.3420201,0.9396926,0],[0,-0.9396926,0.3420201,0],[0,0,0,1]],"scale":[0.8730108,0.8325375,2.019629],"viewport":{"x":0,"y":0,"width":1,"height":1},"zoom":1,"bbox":[-0.8835433,0.6289566,-1.038784,0.5472448,-0.4399867,0.2138109],"windowRect":[65,768,321,1024],"family":"sans","font":1,"cex":1,"useFreeType":true,"fontname":"/home/chongmj/R/x86_64-pc-linux-gnu-library/3.3/rgl/fonts/FreeSans.ttf","maxClipPlanes":8},"embeddings":{"viewport":"replace","projection":"replace","model":"replace"},"objects":[12,8,7,9,10,11,5,21,22,23,24,25,26,27],"subscenes":[],"flags":1195},"21":{"id":21,"type":"lines","material":{"lit":false,"front":"lines","back":"lines"},"vertices":[[-0.5,-1.062575,-0.4497937],[0.5,-1.062575,-0.4497937],[-0.5,-1.062575,-0.4497937],[-0.5,-1.103415,-0.466629],[0,-1.062575,-0.4497937],[0,-1.103415,-0.466629],[0.5,-1.062575,-0.4497937],[0.5,-1.103415,-0.466629]],"colors":[[0,0,0,1]],"centers":[[0,-1.062575,-0.4497937],[-0.5,-1.082995,-0.4582114],[0,-1.082995,-0.4582114],[0.5,-1.082995,-0.4582114]],"ignoreExtent":true,"origId":8,"flags":128},"22":{"id":22,"type":"text","material":{"lit":false,"front":"lines","back":"lines"},"vertices":[[-0.5,-1.185095,-0.5002996],[0,-1.185095,-0.5002996],[0.5,-1.185095,-0.5002996]],"colors":[[0,0,0,1]],"texts":[["-0.5"],["0"],["0.5"]],"cex":[[1]],"adj":[[0.5,0.5]],"centers":[[-0.5,-1.185095,-0.5002996],[0,-1.185095,-0.5002996],[0.5,-1.185095,-0.5002996]],"family":[["sans"]],"font":[[1]],"ignoreExtent":true,"origId":8,"flags":40},"23":{"id":23,"type":"lines","material":{"lit":false,"front":"lines","back":"lines"},"vertices":[[-0.9062307,-1,-0.4497937],[-0.9062307,0.5,-0.4497937],[-0.9062307,-1,-0.4497937],[-0.9451776,-1,-0.466629],[-0.9062307,-0.5,-0.4497937],[-0.9451776,-0.5,-0.466629],[-0.9062307,0,-0.4497937],[-0.9451776,0,-0.466629],[-0.9062307,0.5,-0.4497937],[-0.9451776,0.5,-0.466629]],"colors":[[0,0,0,1]],"centers":[[-0.9062307,-0.25,-0.4497937],[-0.9257042,-1,-0.4582114],[-0.9257042,-0.5,-0.4582114],[-0.9257042,0,-0.4582114],[-0.9257042,0.5,-0.4582114]],"ignoreExtent":true,"origId":8,"flags":128},"24":{"id":24,"type":"text","material":{"lit":false,"front":"lines","back":"lines"},"vertices":[[-1.023071,-1,-0.5002996],[-1.023071,-0.5,-0.5002996],[-1.023071,0,-0.5002996],[-1.023071,0.5,-0.5002996]],"colors":[[0,0,0,1]],"texts":[["-1"],["-0.5"],["0"],["0.5"]],"cex":[[1]],"adj":[[0.5,0.5]],"centers":[[-1.023071,-1,-0.5002996],[-1.023071,-0.5,-0.5002996],[-1.023071,0,-0.5002996],[-1.023071,0.5,-0.5002996]],"family":[["sans"]],"font":[[1]],"ignoreExtent":true,"origId":8,"flags":40},"25":{"id":25,"type":"lines","material":{"lit":false,"front":"lines","back":"lines"},"vertices":[[-0.9062307,-1.062575,-0.4],[-0.9062307,-1.062575,0.2],[-0.9062307,-1.062575,-0.4],[-0.9451776,-1.103415,-0.4],[-0.9062307,-1.062575,-0.3],[-0.9451776,-1.103415,-0.3],[-0.9062307,-1.062575,-0.2],[-0.9451776,-1.103415,-0.2],[-0.9062307,-1.062575,-0.1],[-0.9451776,-1.103415,-0.1],[-0.9062307,-1.062575,0],[-0.9451776,-1.103415,0],[-0.9062307,-1.062575,0.1],[-0.9451776,-1.103415,0.1],[-0.9062307,-1.062575,0.2],[-0.9451776,-1.103415,0.2]],"colors":[[0,0,0,1]],"centers":[[-0.9062307,-1.062575,-0.1],[-0.9257042,-1.082995,-0.4],[-0.9257042,-1.082995,-0.3],[-0.9257042,-1.082995,-0.2],[-0.9257042,-1.082995,-0.1],[-0.9257042,-1.082995,0],[-0.9257042,-1.082995,0.1],[-0.9257042,-1.082995,0.2]],"ignoreExtent":true,"origId":8,"flags":128},"26":{"id":26,"type":"text","material":{"lit":false,"front":"lines","back":"lines"},"vertices":[[-1.023071,-1.185095,-0.4],[-1.023071,-1.185095,-0.3],[-1.023071,-1.185095,-0.2],[-1.023071,-1.185095,-0.1],[-1.023071,-1.185095,0],[-1.023071,-1.185095,0.1],[-1.023071,-1.185095,0.2]],"colors":[[0,0,0,1]],"texts":[["-0.4"],["-0.3"],["-0.2"],["-0.1"],["0"],["0.1"],["0.2"]],"cex":[[1]],"adj":[[0.5,0.5]],"centers":[[-1.023071,-1.185095,-0.4],[-1.023071,-1.185095,-0.3],[-1.023071,-1.185095,-0.2],[-1.023071,-1.185095,-0.1],[-1.023071,-1.185095,0],[-1.023071,-1.185095,0.1],[-1.023071,-1.185095,0.2]],"family":[["sans"]],"font":[[1]],"ignoreExtent":true,"origId":8,"flags":40},"27":{"id":27,"type":"lines","material":{"lit":false,"front":"lines","back":"lines"},"vertices":[[-0.9062307,-1.062575,-0.4497937],[-0.9062307,0.5710353,-0.4497937],[-0.9062307,-1.062575,0.2236179],[-0.9062307,0.5710353,0.2236179],[-0.9062307,-1.062575,-0.4497937],[-0.9062307,-1.062575,0.2236179],[-0.9062307,0.5710353,-0.4497937],[-0.9062307,0.5710353,0.2236179],[-0.9062307,-1.062575,-0.4497937],[0.6516441,-1.062575,-0.4497937],[-0.9062307,-1.062575,0.2236179],[0.6516441,-1.062575,0.2236179],[-0.9062307,0.5710353,-0.4497937],[0.6516441,0.5710353,-0.4497937],[-0.9062307,0.5710353,0.2236179],[0.6516441,0.5710353,0.2236179],[0.6516441,-1.062575,-0.4497937],[0.6516441,0.5710353,-0.4497937],[0.6516441,-1.062575,0.2236179],[0.6516441,0.5710353,0.2236179],[0.6516441,-1.062575,-0.4497937],[0.6516441,-1.062575,0.2236179],[0.6516441,0.5710353,-0.4497937],[0.6516441,0.5710353,0.2236179]],"colors":[[0,0,0,1]],"centers":[[-0.9062307,-0.2457697,-0.4497937],[-0.9062307,-0.2457697,0.2236179],[-0.9062307,-1.062575,-0.1130879],[-0.9062307,0.5710353,-0.1130879],[-0.1272933,-1.062575,-0.4497937],[-0.1272933,-1.062575,0.2236179],[-0.1272933,0.5710353,-0.4497937],[-0.1272933,0.5710353,0.2236179],[0.6516441,-0.2457697,-0.4497937],[0.6516441,-0.2457697,0.2236179],[0.6516441,-1.062575,-0.1130879],[0.6516441,0.5710353,-0.1130879]],"ignoreExtent":true,"origId":8,"flags":128}},"snapshot":"data:image/png;base64,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","width":700,"height":700,"sphereVerts":{"material":[],"it":[[0,6,7,19,4,8,6,22,2,7,8,25,7,6,8,26,0,7,9,27,2,10,7,24,5,9,10,32,9,7,10,33,0,11,6,18,3,12,11,37,4,6,12,39,6,11,12,40,0,9,11,34,5,13,9,31,3,11,13,44,11,9,13,45,1,14,15,47,2,8,14,49,4,15,8,21,15,14,8,52,1,16,14,46,5,10,16,55,2,14,10,29,14,16,10,57,1,15,17,58,4,12,15,51,3,17,12,36,17,15,12,62,1,17,16,53,3,13,17,61,5,16,13,42,16,17,13,65],[18,20,19,18,21,23,22,21,24,26,25,24,20,23,26,20,19,28,27,19,29,30,24,29,31,33,32,31,28,30,33,28,34,35,18,34,36,38,37,36,22,40,39,22,35,38,40,35,27,41,34,27,42,43,31,42,37,45,44,37,41,43,45,41,46,48,47,46,25,50,49,25,51,52,21,51,48,50,52,48,53,54,46,53,32,56,55,32,49,57,29,49,54,56,57,54,47,59,58,47,39,60,51,39,61,62,36,61,59,60,62,59,58,63,53,58,44,64,61,44,55,65,42,55,63,64,65,63],[19,18,20,20,22,21,23,23,25,24,26,26,26,20,23,23,27,19,28,28,24,29,30,30,32,31,33,33,33,28,30,30,18,34,35,35,37,36,38,38,39,22,40,40,40,35,38,38,34,27,41,41,31,42,43,43,44,37,45,45,45,41,43,43,47,46,48,48,49,25,50,50,21,51,52,52,52,48,50,50,46,53,54,54,55,32,56,56,29,49,57,57,57,54,56,56,58,47,59,59,51,39,60,60,36,61,62,62,62,59,60,60,53,58,63,63,61,44,64,64,42,55,65,65,65,63,64,64]],"vb":[[-1,1,0,0,0,0,-0.7071068,-0.7071068,0,-0.7071068,0,-0.7071068,0,0,0.7071068,0.7071068,0.7071068,0.7071068,-0.9349975,-0.9349975,-0.77044,0,-0.3546542,-0.4507894,-0.3546542,0,-0.4507894,-0.9349975,-0.77044,0,-0.4507894,-0.3546542,0,-0.4507894,-0.9349975,-0.77044,0,-0.3546542,-0.4507894,0,-0.4507894,-0.77044,0,-0.4507894,0,-0.4507894,0.9349975,0.9349975,0.77044,0.3546542,0.4507894,0.3546542,0.4507894,0.9349975,0.77044,0.3546542,0.4507894,0.4507894,0.9349975,0.77044,0.4507894,0.3546542,0.4507894,0.77044,0.4507894,0.4507894],[0,0,-1,1,0,0,0,-0.7071068,-0.7071068,0,-0.7071068,0.7071068,0.7071068,0.7071068,-0.7071068,0,0,0.7071068,0,-0.3546542,-0.4507894,-0.3546542,0,-0.4507894,-0.9349975,-0.9349975,-0.77044,0,-0.4507894,-0.9349975,-0.77044,0,-0.3546542,-0.4507894,0.3546542,0.4507894,0.9349975,0.9349975,0.77044,0.3546542,0.4507894,0.4507894,0.3546542,0.4507894,0.9349975,0.77044,-0.3546542,0,-0.4507894,-0.9349975,-0.77044,0,-0.4507894,0,-0.4507894,0,-0.4507894,-0.77044,0.3546542,0.4507894,0.4507894,0.9349975,0.77044,0.4507894,0.77044,0.4507894],[0,0,0,0,-1,1,-0.7071068,0,-0.7071068,0.7071068,0.7071068,0,-0.7071068,0.7071068,0,-0.7071068,0.7071068,0,-0.3546542,0,-0.4507894,-0.9349975,-0.9349975,-0.77044,0,-0.3546542,-0.4507894,0.3546542,0.4507894,0.3546542,0.4507894,0.9349975,0.9349975,0.77044,0,-0.4507894,-0.3546542,0,-0.4507894,-0.9349975,-0.77044,0.4507894,0.9349975,0.77044,0.3546542,0.4507894,0,-0.3546542,-0.4507894,0,-0.4507894,-0.9349975,-0.77044,0.3546542,0.4507894,0.9349975,0.77044,0.4507894,0,-0.4507894,-0.77044,0,-0.4507894,0.4507894,0.4507894,0.77044]],"primitivetype":"triangle"}});
+  rgl.prefix = "";
+</script>
+
+	<p id="debug">
+	You must enable Javascript to view this page properly.</p>
+    </div>
+    
+	<br>Drag mouse to rotate model. Use mouse wheel or middle button
+	to zoom it.
+	<hr>
+	<br>
+	Object written from rgl 0.95.1441 by writeWebGL.
+
+	</body>
+	</html>
